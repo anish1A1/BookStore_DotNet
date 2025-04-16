@@ -1,13 +1,29 @@
-import Image from "next/image";
-import ButtonComponent from "./component/ButtonComponent";
+"use client";
+import React, { useEffect } from 'react'
+import axios from 'axios'
+const Home = () => {
 
-export default function Home() {
+    useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('/api/data')
+        console.log(response.data)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+      fetchData();
+    }
+    },[])
+
+
+
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      this is the main page of the application in this directory. Create folder in this directory and add page.jsx to start routing in the name of that folder name. Add components too Here below is the example of using components. Use "use client" at top when using hooks in the page. --- Written by Anish Jaiswal
-      <div>
-        <ButtonComponent />
-        </div> 
+    <div className='flex flex-col items-center justify-center min-h-screen p-4'>
+      This is the home page.
+      <p>Welcome to the home page!</p>
     </div>
-  );
+  )
 }
+
+export default Home;
