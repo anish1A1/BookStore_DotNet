@@ -1,5 +1,6 @@
 using System.Text;
 using backend.Data;
+using backend.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,7 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")))
     ;
-var app = builder.Build();
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -34,7 +35,8 @@ builder.Services.AddAuthentication(options =>
             Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "YourSuperSecretKeyHereMakeItLongAndSecure12345")
         ),
         ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateAudience = false,
+        ValidateLifetime = true
     };
 });
 
@@ -58,7 +60,9 @@ builder.Services.AddAuthorization(options =>
 //     app.UseSwagger();
 //     app.UseSwaggerUI();
 // }
+builder.Services.AddScoped<TokenServices>();
 
+var app = builder.Build();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
