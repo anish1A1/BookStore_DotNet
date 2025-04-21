@@ -40,4 +40,8 @@ public class TokenServices
                     return new JwtSecurityTokenHandler().WriteToken(token);
           }
 
+    internal object GenerateJwtToken(User user)
+    {
+        throw new NotImplementedException();
+    }
 }

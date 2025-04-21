@@ -5,7 +5,7 @@ namespace backend.Model;
 public class User
 {
      [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         [StringLength(50)]
