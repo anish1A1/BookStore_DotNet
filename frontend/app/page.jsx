@@ -19,7 +19,7 @@ const Home = () => {
 
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen p-4'>
+    <div className='flex flex-col items-center justify-center   p-4'>
       This is the home page.
       <p>Welcome to the home page!</p>
     </div>
