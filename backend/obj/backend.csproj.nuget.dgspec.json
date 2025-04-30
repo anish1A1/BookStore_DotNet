@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\suraj\\AllProjects\\BookStore_DotNet\\BookStore_DotNet\\backend\\backend.csproj": {}
+    "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\suraj\\AllProjects\\BookStore_DotNet\\BookStore_DotNet\\backend\\backend.csproj": {
+    "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\suraj\\AllProjects\\BookStore_DotNet\\BookStore_DotNet\\backend\\backend.csproj",
+        "projectUniqueName": "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "C:\\Users\\suraj\\AllProjects\\BookStore_DotNet\\BookStore_DotNet\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\suraj\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\suraj\\AllProjects\\BookStore_DotNet\\BookStore_DotNet\\backend\\obj\\",
+        "projectPath": "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\Legion\\.nuget\\packages\\",
+        "outputPath": "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\suraj\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Legion\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -67,9 +67,17 @@
               "target": "Package",
               "version": "[8.0.15, )"
             },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.9.0, )"
+            },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[8.0.11, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.9.0, )"
             }
           },
           "imports": [

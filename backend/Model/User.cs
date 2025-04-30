@@ -4,7 +4,7 @@ namespace backend.Model;
 
 public class User
 {
-     [Key]
+        [Key]
         public Guid Id { get; set; }
 
         [Required]
@@ -19,6 +19,6 @@ public class User
         public string PasswordHash { get; set; } = string.Empty;
 
         [Required]
-        public string Role { get; set; } = "User"; // Default role is User
+        public string Role { get; set; } = "Member"; // Default role is Member. First regsitration is admin(I assumed only one admin. Need to ask kushal sir)
 
 }

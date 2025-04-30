@@ -1,16 +1,12 @@
-using System;
 using backend.Data;
 using backend.DTOs.Request;
 using backend.DTOs.Response;
 using backend.Model;
 using backend.Service;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Controllers;
-
-public class AuthController
+namespace backend.Controllers
 {
     [Route("auth")]
     [ApiController]
@@ -94,7 +90,7 @@ public class AuthController
             }
 
             // Generate JWT token
-            var token = _tokenService.GenerateJwtToken(user);
+            var token = _tokenService.GenerateToken(user);
 
             // Return token and user information
             return Ok(new
@@ -110,6 +106,4 @@ public class AuthController
             });
         }
     }
-
-
 }

@@ -10,9 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-// builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
+
+// For postgresql database
 
 builder.Services.AddDbContext<ApplicationDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")))
@@ -32,7 +31,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "YourSuperSecretKeyHereMakeItLongAndSecure12345")
+            Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "12783))1192@@o123***h*(%^%$2u912u82u332##!*(12ouze")
         ),
         ValidateIssuer = false,
         ValidateAudience = false,
@@ -40,30 +39,34 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-
-// Configure authorization policies
-builder.Services.AddAuthorization(options =>
+//For Next JS frontend
+builder.Services.AddCors(options =>
 {
-    // Policy for Admin role
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-
-    // Policy for User role
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+    options.AddPolicy("AllowNextJs", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
 });
 
 
+// Configure authorization policies
 
-// Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseSwagger();
-//     app.UseSwaggerUI();
-// }
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireMemberRole", policy => policy.RequireRole("Member"));
+    options.AddPolicy("RequireStaffRole", policy => policy.RequireRole("Staff"));
+});
+
+
 builder.Services.AddScoped<TokenServices>();
 
 var app = builder.Build();
+
 app.UseHttpsRedirection();
+
+app.UseCors("AllowNextJs"); //Next JS CORS policy
 
 app.UseAuthorization();
 
