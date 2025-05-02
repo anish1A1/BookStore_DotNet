@@ -1,5 +1,5 @@
 
-// app/components/navbar/navbar.jsx
+
 import Link from 'next/link'
 import { FiSearch, FiHeart, FiShoppingCart, FiUser } from 'react-icons/fi'
 

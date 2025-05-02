@@ -1,4 +1,4 @@
-// app/components/footer/footer.jsx
+
 import Link from 'next/link'
 import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa'
 
