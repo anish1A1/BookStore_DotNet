@@ -1,6 +1,19 @@
 {
   "format": 1,
   "restore": {
+<<<<<<< HEAD
+    "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj": {}
+  },
+  "projects": {
+    "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj",
+        "projectName": "backend",
+        "projectPath": "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\Legion\\.nuget\\packages\\",
+        "outputPath": "D:\\Dotnet-BookLux\\BookStore_DotNet\\backend\\obj\\",
+=======
     "C:\\Users\\Desktop\\BookStore_DotNet\\backend\\backend.csproj": {}
   },
   "projects": {
@@ -12,12 +25,17 @@
         "projectPath": "C:\\Users\\Desktop\\BookStore_DotNet\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\shres\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\Desktop\\BookStore_DotNet\\backend\\obj\\",
+>>>>>>> 2da41c1b5fd9073ce6b0d5bbef960e82014f9d48
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
+<<<<<<< HEAD
+          "C:\\Users\\Legion\\AppData\\Roaming\\NuGet\\NuGet.Config",
+=======
           "C:\\Users\\shres\\AppData\\Roaming\\NuGet\\NuGet.Config",
+>>>>>>> 2da41c1b5fd9073ce6b0d5bbef960e82014f9d48
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -51,9 +69,33 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Swashbuckle.AspNetCore": {
+            "BCrypt.Net-Next": {
               "target": "Package",
-              "version": "[6.6.2, )"
+              "version": "[4.0.3, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.15, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.15, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "target": "Package",
+              "version": "[8.0.15, )"
+            },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.9.0, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.9.0, )"
             }
           },
           "imports": [
