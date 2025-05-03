@@ -25,12 +25,12 @@ namespace backend.Controllers
         {
             var users = await _context.Users.ToListAsync();
 
-            // Map users to UserDTO
+            // Mappiung users to UserDTO
             var userDtos = users.Select(u => new UserDTO
             {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Email,
+                UserId = u.Id,
+                UserName = u.UserName,
+                UserEmail = u.UserEmail,
                 Role = u.Role
             }).ToList();
 
@@ -42,16 +42,16 @@ namespace backend.Controllers
         public async Task<ActionResult<UserDTO>> GetUser(Guid id)
         {
             // Get the current user's ID and role from the token
-            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if(userClaim == null) return Unauthorized("Invalid!! Token is missing");
+            if(userIdClaim == null) return Unauthorized("Invalid!! Token is missing");
 
-            var userId = Guid.Parse(userClaim.Value);
+            var currentUserId = Guid.Parse(userIdClaim.Value);
 
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
             // Check if the user is requesting their own data or is an Admin
-            if (id != userId && userRole != "Admin")
+            if (id != currentUserId && userRole != "Admin")
             {
                 return Forbid();
             }
@@ -63,12 +63,12 @@ namespace backend.Controllers
                 return NotFound(new { Message = "User not found" });
             }
 
-            // Map user to UserDTO
+            // Mapping user to UserDTO
             var userDto = new UserDTO
             {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
+                UserId = user.Id,
+                UserName = user.UserName,
+                UserEmail = user.UserEmail,
                 Role = user.Role
             };
 
@@ -79,23 +79,21 @@ namespace backend.Controllers
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] string role)
         {
-            // Validate role
             if (role != "Admin" && role != "Member" && role != "Staff")
             {
                 return BadRequest("Invalid role. Role must be 'Admin' or 'Staff' or 'Member'.");
             }
 
-            // Find user by ID
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound(new{ Message = "User not found" });
             }
 
-            // Update user role
             user.Role = role;
+            user.UpdatedAt = DateTime.UtcNow;
 
-            // Save changes to database
+            // Saving changes to database
             try
             {
                 await _context.SaveChangesAsync();
@@ -110,6 +108,50 @@ namespace backend.Controllers
                 {
                     throw;
                 }
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest(new { Message = "An error occurred while updating the user role", Details = ex.Message });
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserDTO userDto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized(new { Message = "Invalid token or user ID missing" });
+            var currentUserId = Guid.Parse(userIdClaim);
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (id != currentUserId && userRole != "Admin")
+            {
+                return Forbid();
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            user.UserName = userDto.UserName;
+            user.UserEmail = userDto.UserEmail;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound(new { Message = "User not found" });
+                }
+                throw;
             }
 
             return NoContent();

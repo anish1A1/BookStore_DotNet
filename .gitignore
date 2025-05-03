@@ -1,0 +1,30 @@
+# .NET build artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+*.editorconfig
+
+# Visual Studio files
+*.suo
+*.user
+*.sln.docstates
+
+# Next.js build artifacts (if applicable)
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/*.log
+backend/Migrations/20250503031320_InitialCreate.cs
+backend/Migrations/20250503031320_InitialCreate.cs
+backend/Migrations/20250503085004_UpdateBooksSchema.cs
+backend/Migrations/ApplicationDbContextModelSnapshot.cs
+backend/Migrations/20250503085004_UpdateBooksSchema.Designer.cs
+backend/Migrations/20250503031320_InitialCreate.Designer.cs
+backend/Migrations/ApplicationDbContextModelSnapshot.cs
+backend/Migrations/20250503031320_InitialCreate.Designer.cs
+backend/Migrations/20250503031320_InitialCreate.Designer.cs
