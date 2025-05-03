@@ -27,15 +27,23 @@ export default function Register() {
       });
       router.push('/login');
     } catch (err) {
-      setError(err.response?.data?.Message || 'Registration failed');
-    }
+      if (err.response?.data?.errors) {
+        setError(err.response.data.errors); // Store all validation errors
+      } else {
+        setError({ General: ['Registration failed'] });
+      }
+    }  
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-200">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl text-center font-bold text-blue-900 mb-6">BookLux Register</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && Object.keys(error).map((key) => (
+            <p key={key} style={{ color: 'red', marginBottom: '10px' }}>
+              Error: {error[key].join(', ')}
+            </p>
+          ))}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-dark-blue mb-2">Username</label>
