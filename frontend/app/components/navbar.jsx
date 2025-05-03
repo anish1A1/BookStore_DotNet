@@ -5,8 +5,8 @@ import { FiSearch, FiHeart, FiShoppingCart, FiUser } from 'react-icons/fi'
 
 export default function Navbar() {
   return (
-    <nav className="bg-white shadow-xl border-2 ">
-      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
+    <nav className="bg-white shadow-xl  ">
+      <div className="max-w-6xl mx-auto p-2  flex items-center justify-between h-15">
         {/* Logo */}
         <Link href="/" className="text-2xl font-bold text-[#F1C40F]">
           BookLux
