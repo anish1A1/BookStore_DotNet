@@ -68,6 +68,8 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowNextJs"); //Next JS CORS policy
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

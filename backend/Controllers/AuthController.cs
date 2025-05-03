@@ -21,18 +21,17 @@ namespace backend.Controllers
             _tokenService = tokenService;
         }
 
-        // POST: api/Auth/register
         [HttpPost("register")]
         public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDto)
         {
             // Check if username already exists
-            if (await _context.Users.AnyAsync(u => u.Username == registerDto.Username))
+            if (await _context.Users.AnyAsync(u => u.UserName == registerDto.UserName))
             {
                 return BadRequest("Username is already taken");
             }
 
             // Check if email already exists
-            if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
+            if (await _context.Users.AnyAsync(u => u.UserEmail == registerDto.UserEmail))
             {
                 return BadRequest("Email is already registered");
             }
@@ -40,9 +39,14 @@ namespace backend.Controllers
             // Create new user
             var user = new User
             {
-                Username = registerDto.Username,
-                Email = registerDto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password)
+                Id = Guid.NewGuid(),
+                UserName = registerDto.UserName,
+                UserEmail = registerDto.UserEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                MembershipId = Guid.NewGuid().ToString().Substring(0, 8),
+                Role = await _context.Users.AnyAsync() ? "Member" : "Admin",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             // Check if this is the first user, if so, make them an Admin
@@ -54,28 +58,29 @@ namespace backend.Controllers
             // Add user to database
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            
+            var token = _tokenService.GenerateToken(user);
 
             // Return user DTO with token
-            return new UserDTO
+            return Ok(new
             {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role
-            };
+                Token = token,
+                User = new UserDTO
+                {
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    UserEmail = user.UserEmail,
+                    Role = user.Role
+                }
+            });
         }
 
-        private ActionResult<UserDTO> BadRequest(string v)
-        {
-            throw new NotImplementedException();
-        }
 
-        // POST: api/Auth/login
         [HttpPost("login")]
         public async Task<ActionResult<object>> Login(LoginDTO loginDto)
         {
             // Find user by username
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.UserName == loginDto.UserName);
 
             // Check if user exists
             if (user == null)
@@ -98,9 +103,9 @@ namespace backend.Controllers
                 Token = token,
                 User = new UserDTO
                 {
-                    Id = user.Id,
-                    Username = user.Username,
-                    Email = user.Email,
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    UserEmail = user.UserEmail,
                     Role = user.Role
                 }
             });
