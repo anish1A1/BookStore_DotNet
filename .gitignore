@@ -1,0 +1,21 @@
+# .NET build artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+*.editorconfig
+
+# Visual Studio files
+*.suo
+*.user
+*.sln.docstates
+
+# Next.js build artifacts (if applicable)
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/*.log
