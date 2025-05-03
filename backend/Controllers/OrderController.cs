@@ -23,6 +23,7 @@ public class OrderController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<OrderDTO>> PlaceOrder()
     {
+        // In this post request cartItems should be provided by the frontend
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return BadRequest(new { Message = "User ID not found in claims" });
         var userId = Guid.Parse(userIdClaim);
@@ -32,6 +33,8 @@ public class OrderController : ControllerBase
             .ThenInclude(ci => ci.Book)
             .ThenInclude(b => b.Inventory)
             .FirstOrDefaultAsync(c => c.UserId == userId);
+            // - Finds the first cart associated with the given UserId.
+
         if (cart == null || !cart.CartItems.Any())
             return BadRequest(new { Message = "Cart is empty" });
 

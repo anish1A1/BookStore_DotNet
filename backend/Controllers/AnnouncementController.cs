@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.DTOs.Response;
 using backend.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ namespace backend.Controllers
             }));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<AnnouncementResponseDTO>> PostAnnouncement() {
             var newAnnouncement = new Announcement();
