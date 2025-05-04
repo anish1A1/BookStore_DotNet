@@ -26,4 +26,6 @@ public class Book
     public List<CartItem> CartItems { get; set; } = new List<CartItem>();    
     public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public List<Review> Reviews { get; set; } = new List<Review>();
+
+    public List<Discount> Discounts { get; set; } = new List<Discount>();
 }

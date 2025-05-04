@@ -15,6 +15,7 @@ public class Order
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsClaimedByUser { get; set; } = false;
     public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public List<Review> Reviews { get; set; } = new List<Review>();
     public List<Broadcast> Broadcasts { get; set; } = new List<Broadcast>();
