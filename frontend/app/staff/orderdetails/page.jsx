@@ -263,7 +263,7 @@ export default function StaffOrderDetail() {
                 <button
                   onClick={() => {
                     setShowConfirmation(false);
-                    router.push("/staff/StaffOrders");
+                    router.push("/staff/order");
                   }}
                   className="px-4 py-2 bg-gray-800 text-white rounded-md"
                 >
