@@ -120,4 +120,3 @@ public class ApplicationDbContext : DbContext
 
     }
 }
-
