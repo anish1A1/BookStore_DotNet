@@ -1,16 +1,18 @@
-
-import Link from 'next/link'
-import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa'
+import Link from "next/link";
+import { FaFacebookF, FaTwitter, FaInstagram } from "react-icons/fa";
 
 export default function Footer() {
-  const year = new Date().getFullYear()
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#2C3E50] text-white py-12">
+    <footer className="bg-gray-900 text-gray-300 py-12">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Brand */}
         <div>
-          <h2 className="text-2xl font-bold text-[#F1C40F]">BookLux</h2>
+          <h2 className="text-2xl font-bold ">
+          <span className="text-[#0062C4]">Book </span>
+          <span className="text-[#F0C40E]">Lux</span>
+          </h2>
           <p className="mt-4">Premium book retail platform</p>
         </div>
 
@@ -18,10 +20,26 @@ export default function Footer() {
         <div>
           <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
           <ul className="space-y-2">
-            <li><Link href="/about" className="hover:text-[#F1C40F]">About Us</Link></li>
-            <li><Link href="/contact" className="hover:text-[#F1C40F]">Contact</Link></li>
-            <li><Link href="/faq" className="hover:text-[#F1C40F]">FAQ</Link></li>
-            <li><Link href="/terms" className="hover:text-[#F1C40F]">Terms & Privacy</Link></li>
+            <li>
+              <Link href="/about" className="hover:text-[#0062C4]">
+                About Us
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-[#0062C4]">
+                Contact
+              </Link>
+            </li>
+            <li>
+              <Link href="/faq" className="hover:text-[#0062C4]">
+                FAQ
+              </Link>
+            </li>
+            <li>
+              <Link href="/terms" className="hover:text-[#0062C4]">
+                Terms & Privacy
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -29,9 +47,21 @@ export default function Footer() {
         <div>
           <h3 className="text-xl font-semibold mb-4">Customer Support</h3>
           <ul className="space-y-2">
-            <li><Link href="/help-center" className="hover:text-[#F1C40F]">Help Center</Link></li>
-            <li><Link href="/order-status" className="hover:text-[#F1C40F]">Order Status</Link></li>
-            <li><Link href="/returns" className="hover:text-[#F1C40F]">Returns & Refunds</Link></li>
+            <li>
+              <Link href="/help-center" className="hover:text-[#0062C4]">
+                Help Center
+              </Link>
+            </li>
+            <li>
+              <Link href="/order-status" className="hover:text-[#0062C4]">
+                Order Status
+              </Link>
+            </li>
+            <li>
+              <Link href="/returns" className="hover:text-[#0062C4]">
+                Returns & Refunds
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -39,13 +69,28 @@ export default function Footer() {
         <div>
           <h3 className="text-xl font-semibold mb-4">Connect With Us</h3>
           <div className="flex space-x-4">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#F1C40F]">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#0062C4]"
+            >
               <FaFacebookF size={20} />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#F1C40F]">
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#0062C4]"
+            >
               <FaTwitter size={20} />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#F1C40F]">
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#0062C4]"
+            >
               <FaInstagram size={20} />
             </a>
           </div>
@@ -57,5 +102,5 @@ export default function Footer() {
         &copy; {year} BookLux. All rights reserved.
       </div>
     </footer>
-  )
+  );
 }
