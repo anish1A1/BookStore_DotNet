@@ -5,12 +5,12 @@ import { useState, useContext, createContext, useMemo } from "react";
 
 const BookContext = createContext();
 
-export default BookProvider =() => {
+export const BookProvider = ({children}) => {
     const [books, setBooks] = useState([]);
     const [bookById, setBookById] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inventory, setInventory] = useState([]);
-
+    
     const fetchBooks = async( filter = {}) => {
         try {
             const response = await axios.get('/books', { params: filter});
@@ -142,16 +142,24 @@ export default BookProvider =() => {
         books,
         bookById,
         loading,
+        inventory,
         fetchBooks,
         fetchBooksById,
         createBook,
         updateBook,
         deleteBook,
         updateBookinventory
-    }), [books, bookById, loading]);
+    }), [books, bookById, loading, inventory]);
 
-    <BookContext.Provider value={value}>{children}</BookContext.Provider>
+    return (
+        <BookContext.Provider value={value}>
+          {children}
+        </BookContext.Provider>
+      ); 
 }
 
-export {BookContext};
+
+
+export { BookContext };
+
 

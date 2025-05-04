@@ -1,12 +1,11 @@
 'use client';
-import { headers } from "next/headers";
 import axios from "./axios";
 import { useState, useContext, createContext, useMemo } from "react";
 
 
 const OrderContext = createContext();
 
-export default OrderProvider =() => {
+export const OrderProvider =({children}) => {
     const [orders, setOrders] = useState([]);
     const [cartItems, setCartItems] = useState([]);
     const [orderById, setOrderById] = useState([]);
@@ -23,7 +22,7 @@ export default OrderProvider =() => {
                 },
             });
     
-            setCart(response.data);
+            setCartItems(response.data);
         
         } catch (error) {
         const errorMessage = error.response?.data?.Message || 'Error fetching cart';
@@ -138,7 +137,7 @@ export default OrderProvider =() => {
         }
     };
 
-    const value = useMemo(() => ({
+    const values = useMemo(() => ({
         orders,
         orderById,
         loading,
@@ -147,10 +146,16 @@ export default OrderProvider =() => {
         fetchOrdersById,
         AddToCart,
         removeFromCart,
-        updateCart
+        updateCart,
+        fetchCart
     }), [orders, cartItems, orderById, loading]);
+
+    return (
+        <OrderContext.Provider value={values}>
+            {children}
+        </OrderContext.Provider>
+    )
     
-    <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
 }
 
 export {OrderContext};
