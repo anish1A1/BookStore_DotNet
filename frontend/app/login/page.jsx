@@ -1,8 +1,8 @@
 'use client'; 
 
 import { useState } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import axios from '@/utils/axios';
 
 export default function Login() {
   const [username, setUsername] = useState('');
