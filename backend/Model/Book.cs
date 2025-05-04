@@ -21,6 +21,9 @@ public class Book
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsExclusive { get; set; } = false;
+    public bool IsAwardWinner { get; set; } = false;
+
     public Inventory? Inventory { get; set; }
     public List<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
     public List<CartItem> CartItems { get; set; } = new List<CartItem>();    

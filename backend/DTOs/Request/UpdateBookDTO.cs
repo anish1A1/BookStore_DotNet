@@ -15,4 +15,6 @@ public class UpdateBookDTO
     public string PublisherName { get; set; } = string.Empty;
     public string GenreName { get; set; } = string.Empty;
     public string FormatName { get; set; } = string.Empty;
+    public bool IsAwardWinner { get; set; }
+    public bool IsExclusive { get; set; }
 }

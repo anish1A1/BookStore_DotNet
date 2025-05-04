@@ -35,7 +35,9 @@ namespace backend.Controllers
         decimal? maxPrice = null,
         decimal? minRating = null,
         bool? inStock = null,
-        bool? libraryAvailable = null)
+        bool? libraryAvailable = null,
+        bool? exclusive = null,
+        bool? awardWinner = null)
     {
         var query = _context.Books
             .Include(b => b.Inventory)
@@ -66,6 +68,9 @@ namespace backend.Controllers
         if (minRating.HasValue) query = query.Where(b => b.Rating >= minRating.Value);
         if (inStock.HasValue && inStock.Value) query = query.Where(b => b.Inventory != null && b.Inventory.StockCount > 0);
         if (libraryAvailable.HasValue) query = query.Where(b => b.LibraryAvailable == libraryAvailable.Value);
+        
+        if (exclusive.HasValue && exclusive.Value) query = query.Where(b => b.IsExclusive == exclusive.Value);
+        if (awardWinner.HasValue && awardWinner.Value) query = query.Where(b => b.IsAwardWinner == awardWinner.Value);
 
         if (!string.IsNullOrEmpty(sort))
         {
@@ -117,7 +122,9 @@ namespace backend.Controllers
                 GenreName = b.GenreName,
                 FormatName = b.FormatName,
                 Rating = b.Rating,
-                TotalSales = b.TotalSales
+                TotalSales = b.TotalSales,
+                IsAwardWinner = b.IsAwardWinner,
+                IsExclusive = b.IsExclusive
             })
             .ToListAsync();
         return Ok(new
@@ -152,7 +159,9 @@ namespace backend.Controllers
                 GenreName = b.GenreName,
                 FormatName = b.FormatName,
                 Rating = b.Rating,
-                TotalSales = b.TotalSales
+                TotalSales = b.TotalSales,
+                IsAwardWinner = b.IsAwardWinner,
+                IsExclusive = b.IsExclusive
             })
             .FirstOrDefaultAsync(b => b.BookId == id);
 
@@ -184,7 +193,9 @@ namespace backend.Controllers
             GenreName = createBookDTO.GenreName,
             FormatName = createBookDTO.FormatName,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            IsAwardWinner = createBookDTO.IsAwardWinner,
+            IsExclusive = createBookDTO.IsExclusive
         };
 
         var inventory = new Inventory
@@ -217,7 +228,9 @@ namespace backend.Controllers
             GenreName = book.GenreName,
             FormatName = book.FormatName,
             Rating = book.Rating,
-            TotalSales = book.TotalSales
+            TotalSales = book.TotalSales,
+            IsAwardWinner = book.IsAwardWinner,
+            IsExclusive = book.IsExclusive
         };
         return CreatedAtAction(nameof(GetBook), new { id = book.BookId }, bookDTO);
     }
@@ -244,8 +257,9 @@ namespace backend.Controllers
         book.PublisherName = updateBookDTO.PublisherName;
         book.GenreName = updateBookDTO.GenreName;
         book.FormatName = updateBookDTO.FormatName;
+        book.IsAwardWinner = updateBookDTO.IsAwardWinner;
+        book.IsExclusive = updateBookDTO.IsExclusive;
         book.UpdatedAt = DateTime.UtcNow;
-
         await _context.SaveChangesAsync();
 
         return NoContent();
