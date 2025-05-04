@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, createContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 
@@ -26,7 +26,7 @@ export const AuthProvider = ({children}) => {
 
     const fetchUserData = async (token) => {
         try {
-            const response = await axios.get(`/api/auth/dashboard/`);
+            const response = await axios.get(`/member-dashboard/`);
             setUser(response.data.user);
 
         } catch (error) {

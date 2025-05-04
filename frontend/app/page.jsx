@@ -130,9 +130,7 @@ const featuredPicks = [
 ];
 
 const MainHomePage =() =>{
-  useEffect(() => {
-    axios.get("/api/data").catch(() => console.error("Data fetch error"));
-  }, []);
+
 
   function BookCard({ book, size = "w-48" }) {
     return (
