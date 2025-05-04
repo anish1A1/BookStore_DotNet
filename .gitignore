@@ -19,3 +19,12 @@ frontend/.next/
 frontend/dist/
 frontend/build/
 frontend/*.log
+backend/Migrations/20250503031320_InitialCreate.cs
+backend/Migrations/20250503031320_InitialCreate.cs
+backend/Migrations/20250503085004_UpdateBooksSchema.cs
+backend/Migrations/ApplicationDbContextModelSnapshot.cs
+backend/Migrations/20250503085004_UpdateBooksSchema.Designer.cs
+backend/Migrations/20250503031320_InitialCreate.Designer.cs
+backend/Migrations/ApplicationDbContextModelSnapshot.cs
+backend/Migrations/20250503031320_InitialCreate.Designer.cs
+backend/Migrations/20250503031320_InitialCreate.Designer.cs

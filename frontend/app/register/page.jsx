@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Register() {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [UserEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ export default function Register() {
     try {
       await axios.post('http://localhost:5189/auth/register', {
         username,
-        email,
+        UserEmail,
         password,
         confirmPassword
       });
@@ -59,8 +59,8 @@ export default function Register() {
             <label className="block text-dark-blue mb-2">Email</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={UserEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-border rounded-lg focus:outline-none focus:border-gold"
               required
             />

@@ -17,7 +17,7 @@ namespace backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.15")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -182,6 +182,34 @@ namespace backend.Migrations
                     b.ToTable("CartItems");
                 });
 
+            modelBuilder.Entity("backend.Model.Discount", b =>
+                {
+                    b.Property<Guid>("DiscountId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsOnSale")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("Percentage")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("DiscountId");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("Discounts");
+                });
+
             modelBuilder.Entity("backend.Model.Inventory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -220,6 +248,9 @@ namespace backend.Migrations
 
                     b.Property<decimal>("DiscountAmount")
                         .HasColumnType("numeric");
+
+                    b.Property<bool>("IsClaimedByUser")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
@@ -322,6 +353,9 @@ namespace backend.Migrations
                     b.Property<string>("MembershipId")
                         .HasColumnType("text");
 
+                    b.Property<int>("OrderCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -366,6 +400,9 @@ namespace backend.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("WishlistId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("UserId", "BookId");
 
@@ -413,6 +450,16 @@ namespace backend.Migrations
                     b.Navigation("Book");
 
                     b.Navigation("Cart");
+                });
+
+            modelBuilder.Entity("backend.Model.Discount", b =>
+                {
+                    b.HasOne("backend.Model.Book", "Book")
+                        .WithMany("Discounts")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Book");
                 });
 
             modelBuilder.Entity("backend.Model.Inventory", b =>
@@ -505,6 +552,8 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.Book", b =>
                 {
                     b.Navigation("CartItems");
+
+                    b.Navigation("Discounts");
 
                     b.Navigation("Inventory");
 

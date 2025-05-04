@@ -4,6 +4,7 @@ namespace backend.Model;
 
 public class Wishlist
 {
+    public Guid WishlistId { get; set; }
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
     public Guid BookId { get; set; }
