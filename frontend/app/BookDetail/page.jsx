@@ -1,4 +1,4 @@
-// app/bookdetail/page.jsx
+
 "use client";
 
 import { useState } from "react";

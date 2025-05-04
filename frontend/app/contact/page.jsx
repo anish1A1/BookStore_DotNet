@@ -1,4 +1,4 @@
-// app/contact/page.jsx
+
 "use client";
 
 export default function ContactPage() {

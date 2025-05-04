@@ -335,5 +335,8 @@ const MainHomePage =() =>{
   );
 }
 
+<<<<<<< HEAD
 export default MainHomePage;
+=======
+>>>>>>> a085f1b4d93cf739d8afac5d090909b34b79fe2b
 
