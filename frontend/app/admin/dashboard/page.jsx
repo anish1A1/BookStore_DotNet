@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
             <h2 className="font-bold text-lg mb-4">Sales Overview</h2>
             {/* Real image from the web */}
             <img
-              src="https://via.placeholder.com/800x256.png?text=Sales+Overview+Chart"
+              src="https://assets.mailshake.com/wp-content/uploads/2022/08/11110919/sales-performance-dashboard.png"
               alt="Sales Overview Chart"
               className="w-full h-64 object-cover rounded mb-4"
             />
@@ -136,8 +136,8 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: "Manage Books", emoji: "📚", path: "/admin/book-management" },
-              { label: "Manage Discounts", emoji: "🏷️", path: "/admin/discounts" },
-              { label: "Announcements", emoji: "📢", path: "/admin/announcements" },
+              { label: "Manage Discounts", emoji: "🏷️", path: "/admin/discount" },
+              { label: "Announcements", emoji: "📢", path: "/admin/notice" },
               { label: "Reports", emoji: "📊", path: "/admin/reports" },
             ].map((action) => (
               <button

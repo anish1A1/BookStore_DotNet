@@ -13,13 +13,12 @@ export default function StaffOrderDetail() {
   // Static mock data
   const order = {
     placedOn: "Jan 20, 2023 at 2:34 PM",
-    status: "Processing",
+    status: "pending",
     claimCode: "BC-12345-6789",
     customer: {
       name: "John Doe",
       email: "john.doe@example.com",
-      phone: "(555) 123-4567",
-      memberStatus: "Active Member",
+    
     },
     items: [
       {
@@ -69,7 +68,7 @@ export default function StaffOrderDetail() {
         {/* Breadcrumb */}
         <div className="mb-4 text-sm">
           <Link
-            href="/staff/StaffOrders"
+            href="/staff/orders"
             className="text-gray-600 hover:underline"
           >
             Pending Orders
