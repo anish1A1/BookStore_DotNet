@@ -3,13 +3,14 @@
 import { useEffect, useMemo, createContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
-
+import axios from './axios';
 const AuthContext = createContext();
 
 export const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errors, setError] = useState({});
+    const [role, setRole] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -23,6 +24,29 @@ export const AuthProvider = ({children}) => {
         };
         fetchData();
     }, []);
+
+    const checkUserRole = (token, router) => {
+        try {
+            const decoded = jwtDecode(token);
+            const userRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            
+            setRole(userRole); // ✅ Update role state
+    
+            // Redirect based on role
+            if (userRole === "Admin") {
+                router.push("/admin-dashboard");
+            } else if (userRole === "Staff") {
+                router.push("/staff-dashboard");
+            } else if (userRole === "Member") {
+                router.push("/profile");
+            } else {
+                router.push("/login"); // Fallback case
+            }
+        } catch (error) {
+            console.error("Error checking user role:", error);
+            router.push("/login");
+        }
+    };
 
     const fetchUserData = async (token) => {
         try {
@@ -38,13 +62,18 @@ export const AuthProvider = ({children}) => {
     };
 
     const login = async (credentials, router) => {
-        e.preventDefault();
         try {
-          const res = await axios.post('/api/auth/login',credentials);
+          const res = await axios.post('/auth/login',credentials);
           localStorage.setItem('token', res.data.token);
-          router.push('/home');
+          checkUserRole(token, router);  // This will check the role
+          
+          return { status: 'success', message: "You have been logged in successfully"}
+        
         } catch (err) {
-          setError(err.response?.data?.Message || 'Login failed');
+            const errorMessgae = err.response?.data?.Message || 'Login failed';
+            console.log(errorMessgae);
+            console.log(err);
+            throw err.response?.data;
         } finally {
           setLoading(false);
         }
@@ -56,7 +85,9 @@ export const AuthProvider = ({children}) => {
             router.push('/login');
             setUser(null);
         } catch (error) {
-            console.error("Error logging out:", error);
+            const errorMessgae = err.response?.data?.Message || 'Logout failed';
+            console.log(errorMessgae);
+            throw err.response?.data;
         } finally {
             setLoading(false);
         }
@@ -64,11 +95,14 @@ export const AuthProvider = ({children}) => {
 
       const authContextValue = useMemo(() => ({
         user,
-        loading,
+        loading,    
         errors,
+        role,
         login,
-        logout
-      }), [user, loading, errors]);
+        logout,
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }), [user, loading, errors, role]);
       
       return (
         <AuthContext.Provider value={authContextValue}>
