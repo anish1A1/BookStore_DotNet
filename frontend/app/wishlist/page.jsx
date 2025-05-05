@@ -1,6 +1,6 @@
 // app/wishlist/page.jsx
 "use client";
-import Image from "next/image";
+
 import { useState } from "react";
 import Link from "next/link";
 import { HeartIcon, ShoppingCartIcon } from "lucide-react";
@@ -128,9 +128,7 @@ export default function WishlistPage() {
                     />
                   </td>
                   <td className="p-2">
-                    <Image
-                      width={64}
-                      height={80}
+                    <img
                       src={b.cover}
                       alt={b.title}
                       className="w-16 h-20 object-cover rounded"

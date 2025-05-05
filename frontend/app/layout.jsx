@@ -16,7 +16,6 @@ export default function RootLayout({ children }) {
             <OrderProvider>
 
         <Navbar />
-      
         <main className="flex-grow">{children}</main>
         <Footer />
 
@@ -26,5 +25,5 @@ export default function RootLayout({ children }) {
         </AuthProvider>
       </body>
     </html>
-  )
+  );
 }
