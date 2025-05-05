@@ -5,6 +5,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  --navy:  #2C4A62;
+  --slate: #578297;
+  --sky:   #9CC3CC;
+  --pale:  #E5E8BE;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--navy);
+  margin: 0;
+}
 
 @theme inline {
   --color-background: var(--background);

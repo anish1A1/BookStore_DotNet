@@ -1,4 +1,4 @@
-// app/Faq/page.jsx
+
 "use client";
 
 export default function FaqPage() {
