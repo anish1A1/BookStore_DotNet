@@ -17,7 +17,6 @@ export default function LoginPage() {
     try {
       const response = await login(credentials, router);
       if (response) {
-        router.push('/home');
         toast.success(response.message);
       }
     } catch (error) {

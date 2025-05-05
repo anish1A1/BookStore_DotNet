@@ -174,66 +174,91 @@ namespace backend.Controllers
     }
 
     // POST: /book
-    [Authorize(Roles = "Admin")]
-    [HttpPost]
-    public async Task<ActionResult<BookDTO>> CreateBook(CreateBookDTO createBookDTO)
+   [Authorize(Roles = "Admin")]
+[HttpPost("create")]
+public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO createBookDTO, IFormFile imageFile)
+{
+    var book = new Book
     {
-        var book = new Book
+        BookId = Guid.NewGuid(),
+        ISBN = createBookDTO.ISBN,
+        BookTitle = createBookDTO.BookTitle,
+        BookDescription = createBookDTO.BookDescription,
+        PublicationDate = DateTime.SpecifyKind(createBookDTO.PublicationDate, DateTimeKind.Utc),
+        BookLanguage = createBookDTO.BookLanguage,
+        BookPrice = createBookDTO.BookPrice,
+        LibraryAvailable = createBookDTO.LibraryAvailable,
+        AuthorName = createBookDTO.AuthorName,
+        PublisherName = createBookDTO.PublisherName,
+        GenreName = createBookDTO.GenreName,
+        FormatName = createBookDTO.FormatName,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+        IsAwardWinner = createBookDTO.IsAwardWinner,
+        IsExclusive = createBookDTO.IsExclusive,
+    };
+
+    //  Handling Image Upload Properly
+    if (imageFile != null)
+    {
+        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+
+        // Ensure the directory exists
+        if (!Directory.Exists(uploadsPath))
         {
-            BookId = Guid.NewGuid(),
-            ISBN = createBookDTO.ISBN,
-            BookTitle = createBookDTO.BookTitle,
-            BookDescription = createBookDTO.BookDescription,
-            PublicationDate = createBookDTO.PublicationDate,
-            BookLanguage = createBookDTO.BookLanguage,
-            BookPrice = createBookDTO.BookPrice,
-            LibraryAvailable = createBookDTO.LibraryAvailable,
-            AuthorName = createBookDTO.AuthorName,
-            PublisherName = createBookDTO.PublisherName,
-            GenreName = createBookDTO.GenreName,
-            FormatName = createBookDTO.FormatName,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsAwardWinner = createBookDTO.IsAwardWinner,
-            IsExclusive = createBookDTO.IsExclusive
-        };
+            Directory.CreateDirectory(uploadsPath);
+        }
 
-        var inventory = new Inventory
+        //  Define the full file path
+        var filePath = Path.Combine(uploadsPath, imageFile.FileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            Id = Guid.NewGuid(),
-            BookId = book.BookId,
-            Book = book,
-            StockCount = createBookDTO.InitialStockCount,
-            LastUpdated = DateTime.UtcNow
-        };
+            await imageFile.CopyToAsync(stream);
+        }
 
-        book.Inventory = inventory;
-
-        _context.Books.Add(book);
-        await _context.SaveChangesAsync();
-
-        var bookDTO = new BookDTO
-        {
-            BookId = book.BookId,
-            ISBN = book.ISBN,
-            BookTitle = book.BookTitle,
-            BookDescription = book.BookDescription,
-            PublicationDate = book.PublicationDate,
-            BookLanguage = book.BookLanguage,
-            BookPrice = book.BookPrice,
-            StockCount = book.Inventory.StockCount,
-            LibraryAvailable = book.LibraryAvailable,
-            AuthorName = book.AuthorName,
-            PublisherName = book.PublisherName,
-            GenreName = book.GenreName,
-            FormatName = book.FormatName,
-            Rating = book.Rating,
-            TotalSales = book.TotalSales,
-            IsAwardWinner = book.IsAwardWinner,
-            IsExclusive = book.IsExclusive
-        };
-        return CreatedAtAction(nameof(GetBook), new { id = book.BookId }, bookDTO);
+        //  Store the correct image path in the book model
+        book.ImageUrl = filePath;
     }
+
+    var inventory = new Inventory
+    {
+        Id = Guid.NewGuid(),
+        BookId = book.BookId,
+        Book = book,
+        StockCount = createBookDTO.InitialStockCount,
+        LastUpdated = DateTime.UtcNow
+    };
+
+    book.Inventory = inventory;
+
+    _context.Books.Add(book);
+    await _context.SaveChangesAsync();
+
+    var bookDTO = new BookDTO
+    {
+        BookId = book.BookId,
+        ISBN = book.ISBN,
+        BookTitle = book.BookTitle,
+        BookDescription = book.BookDescription,
+        PublicationDate = book.PublicationDate,
+        BookLanguage = book.BookLanguage,
+        BookPrice = book.BookPrice,
+        StockCount = book.Inventory.StockCount,
+        LibraryAvailable = book.LibraryAvailable,
+        AuthorName = book.AuthorName,
+        PublisherName = book.PublisherName,
+        GenreName = book.GenreName,
+        FormatName = book.FormatName,
+        Rating = book.Rating,
+        TotalSales = book.TotalSales,
+        IsAwardWinner = book.IsAwardWinner,
+        IsExclusive = book.IsExclusive,
+        ImageUrl = book.ImageUrl // ✅ Send Image URL in response
+    };
+
+    return CreatedAtAction(nameof(GetBook), new { id = book.BookId }, bookDTO);
+}
 
     // PUT: book/{id}
     [Authorize(Roles = "Admin")]
@@ -249,7 +274,7 @@ namespace backend.Controllers
         book.ISBN = updateBookDTO.ISBN;
         book.BookTitle = updateBookDTO.BookTitle;
         book.BookDescription = updateBookDTO.BookDescription;
-        book.PublicationDate = updateBookDTO.PublicationDate;
+        book.PublicationDate = DateTime.SpecifyKind(updateBookDTO.PublicationDate, DateTimeKind.Utc);
         book.BookLanguage = updateBookDTO.BookLanguage;
         book.BookPrice = updateBookDTO.BookPrice;
         book.LibraryAvailable = updateBookDTO.LibraryAvailable;

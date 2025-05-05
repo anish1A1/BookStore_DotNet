@@ -14,10 +14,10 @@ export const AuthProvider = ({children}) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('token');
             if (token) {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                await fetchUserData(token);
+                // await fetchUserData(token);
             } else {
                 setLoading(false);
             }
@@ -48,23 +48,24 @@ export const AuthProvider = ({children}) => {
         }
     };
 
-    const fetchUserData = async (token) => {
-        try {
-            const response = await axios.get(`/member-dashboard/`);
-            setUser(response.data.user);
+    // const fetchUserData = async (token) => {
+    //     try {
+    //         const response = await axios.get(`/profile/`);
+    //         setUser(response.data.user);
 
-        } catch (error) {
+    //     } catch (error) {
             
-            console.error("Error fetching user data:", error); 
-        }finally {
-            setLoading(false);
-        }
-    };
+    //         console.error("Error fetching user data:", error); 
+    //     }finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const login = async (credentials, router) => {
         try {
           const res = await axios.post('/auth/login',credentials);
           localStorage.setItem('token', res.data.token);
+          const token = localStorage.getItem('token');
           checkUserRole(token, router);  // This will check the role
           
           return { status: 'success', message: "You have been logged in successfully"}

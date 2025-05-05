@@ -18,4 +18,5 @@ public class CreateBookDTO
     public string FormatName { get; set; } = string.Empty;
     public bool IsExclusive { get; set; } = false;
     public bool IsAwardWinner { get; set; } = false;
+    public string ImageUrl { get; set; } = string.Empty;
 }
