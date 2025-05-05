@@ -66,6 +66,13 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseCors("AllowNextJs"); //Next JS CORS policy
 
 app.UseAuthentication();

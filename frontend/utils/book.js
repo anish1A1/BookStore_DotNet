@@ -14,6 +14,7 @@ export const BookProvider = ({children}) => {
     const fetchBooks = async( filter = {}) => {
         try {
             const response = await axios.get('/book', { params: filter});
+            console.log("FetchBooks Response:", response.data);
             setBooks(response.data.books);
             setLoading(false);    
         } catch (error) {

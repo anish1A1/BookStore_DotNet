@@ -53,7 +53,8 @@ public class CartController : ControllerBase
                     GenreName = ci.Book.GenreName,
                     FormatName = ci.Book.FormatName,
                     Rating = ci.Book.Rating,
-                    TotalSales = ci.Book.TotalSales
+                    TotalSales = ci.Book.TotalSales,
+                    ImageUrl = ci.Book.ImageUrl ?? ""
                 },
                 Quantity = ci.Quantity,
                 UnitPrice = ci.UnitPrice
@@ -64,9 +65,10 @@ public class CartController : ControllerBase
     }
 
     [HttpPost("{bookId}")]
-    public async Task<IActionResult> AddToCart(Guid bookId, [FromQuery] int quantity = 1)
+
+    public async Task<IActionResult> AddToCart(Guid bookId, [FromBody] AddToCartRequest request)
     {
-        if (quantity <= 0) return BadRequest(new { Message = "Quantity must be greater than 0" });
+        if (request.Quantity <= 0) return BadRequest(new { Message = "Quantity must be greater than 0" });
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return BadRequest(new { Message = "User ID not found in claims" });
@@ -80,7 +82,7 @@ public class CartController : ControllerBase
                 .FirstOrDefaultAsync(b => b.BookId == bookId);
             if (book == null) return NotFound(new { Message = "Book not found" });
 
-            if (book.Inventory == null || book.Inventory.StockCount < quantity)
+            if (book.Inventory == null || book.Inventory.StockCount < request.Quantity)
                 return BadRequest(new { Message = "Not enough stock available" });
 
             var cart = await _context.Carts
@@ -97,7 +99,7 @@ public class CartController : ControllerBase
             var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.BookId == bookId);
             if (existingCartItem != null)
             {
-                existingCartItem.Quantity += quantity;
+                existingCartItem.Quantity += request.Quantity;
                 if (existingCartItem.Quantity > book.Inventory.StockCount)
                     return BadRequest(new { Message = "Not enough stock available" });
             }
@@ -109,7 +111,7 @@ public class CartController : ControllerBase
                     CartId = cart.CartId,
                     BookId = bookId,
                     Book = book,
-                    Quantity = quantity,
+                    Quantity = request.Quantity,
                     UnitPrice = book.BookPrice
                 };
                 cart.CartItems.Add(cartItem);
@@ -127,32 +129,79 @@ public class CartController : ControllerBase
         }
     }
 
-    [HttpPut("{bookId}")]
-    public async Task<IActionResult> UpdateCartItem(Guid bookId, [FromQuery] int quantity)
+    public class AddToCartRequest
     {
-        if (quantity <= 0) return BadRequest(new { Message = "Quantity must be greater than 0" });
+        public int Quantity { get; set; }
+    }
+
+    [HttpPut("{bookId}")]
+    public async Task<IActionResult> UpdateCartItem(Guid bookId, [FromBody] UpdateCartItemRequest request)
+    {
+        Console.WriteLine($"Received PUT request for bookId: {bookId}, quantity: {request.Quantity}");
+
+        if (request.Quantity <= 0)
+        {
+            Console.WriteLine("Validation failed: Quantity must be greater than 0");
+            return BadRequest(new { Message = "Quantity must be greater than 0" });
+        }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim)) return BadRequest(new { Message = "User ID not found in claims" });
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            Console.WriteLine("Validation failed: User ID not found in claims");
+            return BadRequest(new { Message = "User ID not found in claims" });
+        }
         var userId = Guid.Parse(userIdClaim);
+        Console.WriteLine($"User ID: {userId}");
 
         var cart = await _context.Carts
             .Include(c => c.CartItems)
             .ThenInclude(ci => ci.Book)
             .ThenInclude(b => b.Inventory)
             .FirstOrDefaultAsync(c => c.UserId == userId);
-        if (cart == null) return NotFound(new { Message = "Cart not found" });
+        if (cart == null)
+        {
+            Console.WriteLine("Cart not found for user");
+            return NotFound(new { Message = "Cart not found" });
+        }
 
         var cartItem = cart.CartItems.FirstOrDefault(ci => ci.BookId == bookId);
-        if (cartItem == null) return NotFound(new { Message = "Book not found in your cart" });
+        if (cartItem == null)
+        {
+            Console.WriteLine($"Cart item not found for bookId: {bookId}");
+            return NotFound(new { Message = "Book not found in your cart" });
+        }
 
-        if (cartItem.Book.Inventory == null || cartItem.Book.Inventory.StockCount < quantity)
+        Console.WriteLine($"Current stock count: {cartItem.Book.Inventory?.StockCount ?? 0}");
+        if (cartItem.Book.Inventory == null || cartItem.Book.Inventory.StockCount < request.Quantity)
+        {
+            Console.WriteLine("Validation failed: Not enough stock available");
             return BadRequest(new { Message = "Not enough stock available" });
+        }
 
-        cartItem.Quantity = quantity;
-        await _context.SaveChangesAsync();
+        cartItem.Quantity = request.Quantity;
+        try
+        {
+            await _context.SaveChangesAsync();
+            Console.WriteLine("Quantity updated successfully");
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"DbUpdateException: {ex.InnerException?.Message ?? ex.Message}");
+            return StatusCode(500, new { Message = "Failed to update quantity due to a database error" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            return StatusCode(500, new { Message = "Failed to update quantity due to an unexpected error" });
+        }
 
         return Ok(new { Message = "Cart updated" });
+    }
+
+    public class UpdateCartItemRequest
+    {
+        public int Quantity { get; set; }
     }
 
     [HttpDelete("{bookId}")]

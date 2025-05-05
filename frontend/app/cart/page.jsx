@@ -129,10 +129,10 @@ export default function CartPage() {
                   <div className="w-full md:w-1/2 flex items-center mb-4 md:mb-0">
                     <div className="w-20 h-24 bg-gray-100 rounded overflow-hidden mr-4">
                       
-                      
+                      {console.log("Item Book ImageUrl:", item?.book?.imageUrl)}
                       {item?.book?.imageUrl ? (
                       <img
-                        src={item?.book?.imageUrl}
+                        src={`http://localhost:5189${item?.book?.imageUrl}`}
                         alt={item?.book?.bookTitle}
                         className="w-full  object-cover rounded"
                       />

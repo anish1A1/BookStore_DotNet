@@ -201,7 +201,7 @@ export default function BookManagementPage() {
               <tr key={b.bookId + b.isbn} className="hover:bg-gray-50">
                 <td className="p-3 border border-gray-300">
                   {b.imageUrl ? (
-                    <img src={b.imageUrl} alt={b.bookTitle} className="w-10 h-12 object-cover rounded" />
+                    <img src={`http://localhost:5189${b.imageUrl}`} alt={b.BookTitle} className="w-10 h-12 object-cover rounded" />
                   ) : (
                     <span className="text-gray-500">No Image</span>
                   )}

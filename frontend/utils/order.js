@@ -38,7 +38,7 @@ export const OrderProvider =({children}) => {
     const AddToCart = async (bookId, quantity) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.post(`/cart/${bookId}`, { bookId, quantity }, {
+            const response = await axios.post(`/cart/${bookId}`, { quantity }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -58,6 +58,8 @@ export const OrderProvider =({children}) => {
     const updateCart = async (bookId, quantity) => {
         const token = localStorage.getItem('token');
         try {
+            console.log("Sending PUT request to:", `/cart/${bookId}`, "with payload:", { quantity });
+            console.log("Authorization header:", `Bearer ${token}`);
             const response = await axios.put(`/cart/${bookId}`, { quantity }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
