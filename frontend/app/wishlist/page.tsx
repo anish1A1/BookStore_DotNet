@@ -1,155 +1,223 @@
 // app/wishlist/page.jsx
 "use client";
-
-import React from "react";
+import Image from "next/image";
+import { useState } from "react";
 import Link from "next/link";
-import { HeartIcon, ShoppingCartIcon, XIcon } from "lucide-react";
+import { HeartIcon, ShoppingCartIcon } from "lucide-react";
 
-const WISHLIST = [
+const INITIAL = [
   {
     id: 1,
-    title: "The Silent Echo",
-    author: "Eleanor Winters",
+    title: "The Great Gatsby",
     cover:
-      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=60",
-    price: 29.99,
+      "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=200&q=60",
+    price: 9.99,
     onSale: false,
-    salePrice: 0,
-    format: "Hardcover",
-    addedDate: "2023-07-01",
+    salePrice: null,
+    availability: "In Stock",
+    addedDate: "Jun 17, 2024",
+    qty: 1,
+    selected: false,
   },
   {
     id: 2,
-    title: "Midnight Gardens",
-    author: "James Holloway",
+    title: "Becoming",
     cover:
-      "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=400&q=60",
+      "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=200&q=60",
     price: 24.99,
     onSale: true,
     salePrice: 19.99,
-    format: "Paperback",
-    addedDate: "2023-07-03",
+    availability: "In Stock",
+    addedDate: "Apr 4, 2024",
+    qty: 1,
+    selected: false,
   },
   {
     id: 3,
-    title: "Quantum Horizons",
-    author: "Dr. Samuel Chen",
+    title: "Dune",
     cover:
-      "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=60",
-    price: 26.99,
+      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=200&q=60",
+    price: 14.99,
     onSale: false,
-    salePrice: 0,
-    format: "Hardcover",
-    addedDate: "2023-07-05",
-  },
-  {
-    id: 4,
-    title: "Whispers in the Wind",
-    author: "Robert Hayes",
-    cover:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=60",
-    price: 19.99,
-    onSale: false,
-    salePrice: 0,
-    format: "Paperback",
-    addedDate: "2023-07-07",
+    salePrice: null,
+    availability: "In Stock",
+    addedDate: "Mar 12, 2024",
+    qty: 1,
+    selected: false,
   },
 ];
 
 export default function WishlistPage() {
+  const [items, setItems] = useState(INITIAL);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkAction, setBulkAction] = useState("add");
+
+  const toggleSelectAll = () => {
+    const next = !selectAll;
+    setSelectAll(next);
+    setItems((arr) => arr.map((i) => ({ ...i, selected: next })));
+  };
+
+  const toggleSelect = (id) =>
+    setItems((arr) =>
+      arr.map((i) => (i.id === id ? { ...i, selected: !i.selected } : i))
+    );
+
+  const updateQty = (id, delta) =>
+    setItems((arr) =>
+      arr.map((i) =>
+        i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i
+      )
+    );
+
+  const applyBulk = () => {
+    // For demo: just clear selections
+    setSelectAll(false);
+    setItems((arr) => arr.map((i) => ({ ...i, selected: false })));
+  };
+
   return (
-    <div className="bg-white">
-      <div className="container mx-auto px-4 pt-4">
-        <div className="flex items-center mb-6">
-          <HeartIcon className="text-[#E3B23C] mr-3" />
-          <h1 className="text-3xl font-bold text-[#2C3E50]">My Wishlist</h1>
+    <div className="flex flex-col flex-1 bg-gray-50">
+      {/* Hero header */}
+      <div
+        className="h-64 bg-cover bg-center relative"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1350&q=80')",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white">
+          <h1 className="text-4xl font-bold">Your Wishlist</h1>
+          <p className="mt-2">Save the books you love for later.</p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 pt-6 pb-4 flex-1">
+        <table className="min-w-full bg-white rounded-lg shadow overflow-hidden">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3">
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={toggleSelectAll}
+                  className="form-checkbox"
+                />
+              </th>
+              <th className="p-3 text-left">Cover</th>
+              <th className="p-3 text-left">Book Title</th>
+              <th className="p-3 text-left">Price</th>
+              <th className="p-3 text-center">Qty</th>
+              <th className="p-3 text-left">Availability</th>
+              <th className="p-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((b) => {
+              const unit = b.onSale ? b.salePrice : b.price;
+              const total = (unit * b.qty).toFixed(2);
+              return (
+                <tr key={b.id} className="border-b hover:bg-gray-50">
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={b.selected}
+                      onChange={() => toggleSelect(b.id)}
+                      className="form-checkbox"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <Image
+                      width={64}
+                      height={80}
+                      src={b.cover}
+                      alt={b.title}
+                      className="w-16 h-20 object-cover rounded"
+                    />
+                  </td>
+                  <td className="p-3">{b.title}</td>
+                  <td className="p-3 text-gray-800 font-semibold">
+                    ${total}
+                  </td>
+                  <td className="p-3 text-center">
+                    <div className="inline-flex items-center border rounded overflow-hidden">
+                      <button
+                        onClick={() => updateQty(b.id, -1)}
+                        className="px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
+                        disabled={b.qty <= 1}
+                      >
+                        −
+                      </button>
+                      <span className="px-3">{b.qty}</span>
+                      <button
+                        onClick={() => updateQty(b.id, +1)}
+                        className="px-2 py-1 hover:bg-gray-100"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={
+                        b.availability === "In Stock"
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }
+                    >
+                      {b.availability}
+                    </span>
+                  </td>
+                  <td className="p-3 space-x-2">
+                    <Link
+                      href="/cart"
+                      className="inline-flex items-center bg-[#F1C40F] hover:bg-green-600 text-white px-4 py-1 rounded transition"
+                    >
+                      <ShoppingCartIcon size={16} className="mr-1" />
+                      Add to Cart
+                    </Link>
+                    <span className="text-sm text-gray-500">
+                      Added: {b.addedDate}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Bulk action */}
+        <div className="mt-4 flex items-center space-x-3">
+          <span>Action for selected:</span>
+          <select
+            value={bulkAction}
+            onChange={(e) => setBulkAction(e.target.value)}
+            className="border rounded px-2 py-1"
+          >
+            <option value="add">Add to cart</option>
+            <option value="remove">Remove</option>
+          </select>
+          <button
+            onClick={applyBulk}
+            className="bg-[#F1C40F] hover:bg-green-600 text-white px-4 py-1 rounded"
+          >
+            APPLY
+          </button>
+          <button className="ml-auto border border-gray-300 text-gray-600 px-4 py-1 rounded hover:bg-gray-100">
+            UPDATE
+          </button>
         </div>
 
-        {WISHLIST.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {WISHLIST.map((book) => (
-                <div
-                  key={book.id}
-                  className="bg-white shadow rounded-lg overflow-hidden"
-                >
-                  <div className="relative">
-                    <img
-                      src={book.cover}
-                      alt={book.title}
-                      className="w-full h-48 object-cover"
-                    />
-                    <button className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100 transition">
-                      <XIcon size={16} className="text-gray-600" />
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold mb-1">{book.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{book.author}</p>
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        {book.onSale ? (
-                          <div className="flex items-baseline">
-                            <span className="text-red-500 font-bold">
-                              ${book.salePrice.toFixed(2)}
-                            </span>
-                            <span className="text-gray-500 text-sm line-through ml-2">
-                              ${book.price.toFixed(2)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="font-bold">
-                            ${book.price.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                        {book.format}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        Added on {book.addedDate}
-                      </span>
-                      <Link
-                        href="/cart"
-                        className="flex items-center bg-[#E3B23C] text-white px-3 py-1 rounded text-sm hover:bg-[#d1a436] transition"
-                      >
-                        <ShoppingCartIcon size={14} className="mr-1" />
-                        Add to Cart
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-2 text-center">
-              <Link
-                href="/catalogue"
-                className="text-[#E3B23C] font-bold hover:underline"
-              >
-                Continue Shopping
-              </Link>
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-16">
-            <HeartIcon size={48} className="text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-4">
-              Your wishlist is empty
-            </h2>
-            <p className="text-gray-600 mb-8">
-              Browse our collection and add items to your wishlist
-            </p>
-            <Link
-              href="/catalogue"
-              className="bg-[#E3B23C] hover:bg-[#d1a436] text-white px-6 py-3 rounded font-bold transition-colors"
-            >
-              Browse Collection
-            </Link>
-          </div>
-        )}
+        {/* Add All to Cart */}
+        <div className="mt-6 flex justify-end">
+          <Link
+            href="/cart"
+            className="bg-[#F1C40F] hover:bg-green-600 text-white px-6 py-2 rounded"
+          >
+            Add All to Cart
+          </Link>
+        </div>
       </div>
     </div>
   );
