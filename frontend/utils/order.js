@@ -64,6 +64,7 @@ export const OrderProvider =({children}) => {
                 },
             });
             setCartItems(prevCart => prevCart.map(item => item.id === bookId ? response.data : item));
+            console.log("Data is ", response.data);
             return { status: 'success', message: 'Book quantity updated successfully' }
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error updating book quantity';
@@ -138,18 +139,63 @@ export const OrderProvider =({children}) => {
         }
     };
 
+    const AddToWishList = async (bookId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.post(`/wishlist/${bookId}`, { bookId }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setWishlists((prevWishlists) => [...prevWishlists, response.data]);
+            return { status: 'success', message: 'Book added to wishlist successfully' }
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error adding book to wishlist';
+            
+            console.error('Error adding book to wishlist',errorMessage);
+            throw errorMessage.response.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getAllWishList = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`/wishlist/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setWishlists(response.data);
+            setLoading(false);    
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error fetching wishlist';
+            
+            console.error('Error fetching the wishlist',errorMessage);
+            throw errorMessage.response.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
     const values = useMemo(() => ({
         orders,
         orderById,
         loading,
         cartItems,
+        wishlists,
         fetchOrders,
         fetchOrdersById,
         AddToCart,
         removeFromCart,
         updateCart,
-        fetchCart
-    }), [orders, cartItems, orderById, loading]);
+        fetchCart,
+        AddToWishList,
+        getAllWishList
+    }), [orders, cartItems, wishlists, orderById, loading]);
 
     return (
         <OrderContext.Provider value={values}>

@@ -21,7 +21,7 @@ export default function BookDetailPage() {
   const [qty, setQty] = useState(1);
   const [format, setFormat] = useState("hardcover");
   const {bookById, fetchBooksById} = useContext(BookContext);
-  const {AddToCart} = useContext(OrderContext);
+  const {AddToCart, AddToWishList} = useContext(OrderContext);
 
   // Static book data
   
@@ -30,11 +30,19 @@ export default function BookDetailPage() {
   }, [id]);
 
   const handleAddToCartClick = async (quantity, wantedQuantity, bookId) => {
+    
+    const token = localStorage.getItem("token");
+
+    if(!token) {
+      router.push("/login");
+      toast.error("Please login first!");
+      return;
+    }
     if (wantedQuantity > quantity) {
       toast.error("Not enough stock available");
       return;
     }
-  
+    
     try {
       const response = await AddToCart(bookId, quantity);
       toast.success(response?.message || "Added to cart successfully");
@@ -43,6 +51,26 @@ export default function BookDetailPage() {
       console.error("Add to Cart Error:", error?.response);
     }
   };
+
+  const handleAddToWishListClick = async (bookId) => {
+    
+    const token = localStorage.getItem("token");
+
+    if(!token) {
+      router.push("/login");
+      toast.error("Please login first!");
+      return;
+    }
+    
+    try {
+      const response = await AddToWishList(bookId);
+      toast.success(response?.message || "Added to wishlist successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add item");
+      console.error("Add to Cart Error:", error?.response);
+    }
+  };
+
   
 
   const similar = [
@@ -196,13 +224,13 @@ export default function BookDetailPage() {
                 >
                   Add to Cart
                 </button>
-                <Link
-                  href="/wishlist"
+                <button
+                  onClick={() =>handleAddToWishListClick (bookById?.bookId)}
                   className="border border-[#2C3E50] text-[#2C3E50] px-6 py-3 rounded flex items-center"
                 >
                   <BookmarkIcon size={18} className="mr-2" />
                   Wishlist
-                </Link>
+                </button>
               </div>
             </div>
 
