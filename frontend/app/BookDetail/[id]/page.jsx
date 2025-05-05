@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import {
   StarIcon,
@@ -10,29 +10,40 @@ import {
   BookmarkIcon,
   ChevronRightIcon,
 } from "lucide-react";
-
+import { BookContext } from "../../../utils/book";
+import { useRouter, useParams } from "next/navigation";
+import {toast} from "sonner";
+import { OrderContext } from "../../../utils/order";
 export default function BookDetailPage() {
+  const router = useRouter();
+  const {id} = useParams();
   const [tab, setTab] = useState("description");
   const [qty, setQty] = useState(1);
   const [format, setFormat] = useState("hardcover");
+  const {bookById, fetchBooksById} = useContext(BookContext);
+  const {AddToCart} = useContext(OrderContext);
 
   // Static book data
-  const book = {
-    id: 1,
-    cover:
-      "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=800&q=60",
-    title: "The Silent Echo",
-    author: "Eleanor Winters",
-    rating: 4.5,
-    price: 29.99,
-    onSale: true,
-    salePrice: 23.99,
-    formats: ["paperback", "hardcover", "deluxe", "signed"],
-    publication: "June 15, 2023",
-    isbn: "978-3-16-148410-0",
-    language: "English",
-    pages: 342,
+  
+  useEffect(() => {
+    fetchBooksById(id);
+  }, [id]);
+
+  const handleAddToCartClick = async (quantity, wantedQuantity, bookId) => {
+    if (wantedQuantity > quantity) {
+      toast.error("Not enough stock available");
+      return;
+    }
+  
+    try {
+      const response = await AddToCart(bookId, quantity);
+      toast.success(response?.message || "Added to cart successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add item");
+      console.error("Add to Cart Error:", error?.response);
+    }
   };
+  
 
   const similar = [
     {
@@ -61,6 +72,11 @@ export default function BookDetailPage() {
     },
   ];
 
+  if (!bookById || Object.keys(bookById).length === 0) {
+    return <div className="text-center py-20">Loading book details...</div>;
+  }
+  
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
@@ -77,7 +93,7 @@ export default function BookDetailPage() {
             Collection
           </Link>
           <ChevronRightIcon size={14} className="text-gray-400" />
-          <span className="font-medium text-[#2C3E50]">{book.title}</span>
+          <span className="font-medium text-[#2C3E50]">{bookById.bookTitle}</span>
         </nav>
 
         {/* Main */}
@@ -85,8 +101,8 @@ export default function BookDetailPage() {
           {/* Cover */}
           <div className="md:w-1/3">
             <img
-              src={book.cover}
-              alt={book.title}
+              src={bookById.cover}
+              alt={bookById.bookTitle}
               className="w-full rounded-lg shadow"
             />
           </div>
@@ -94,12 +110,12 @@ export default function BookDetailPage() {
           {/* Details */}
           <div className="md:w-2/3 space-y-4">
             <h1 className="text-3xl font-bold text-[#2C3E50]">
-              {book.title}
+              {bookById.bookTitle}
             </h1>
             <p className="text-xl">
               by{" "}
               <span className="text-[#E3B23C] font-semibold">
-                {book.author}
+                {bookById.authorName}
               </span>
             </p>
 
@@ -109,30 +125,31 @@ export default function BookDetailPage() {
                   key={i}
                   size={18}
                   className={
-                    i < Math.floor(book.rating)
+                    i < Math.floor(bookById.rating)
                       ? "text-[#E3B23C]"
                       : "text-gray-300"
                   }
                 />
               ))}
-              <span>{book.rating.toFixed(1)} / 5</span>
+              <span>{bookById?.rating?.toFixed(1)} / 5</span>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-baseline space-x-2">
                 <span className="text-2xl font-bold">
-                  ${book.onSale ? book.salePrice.toFixed(2) : book.price.toFixed(2)}
+                  ${bookById.onSale ? bookById?.salePrice?.toFixed(2) : bookById?.bookPrice?.toFixed(2)}
                 </span>
-                {book.onSale && (
+                {/* {bookById.onSale && (
                   <>
                     <span className="text-gray-400 line-through">
-                      ${book.price.toFixed(2)}
+                      ${bookById?.price?.toFixed(2)}
                     </span>
                     <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
                       SAVE
                     </span>
                   </>
-                )}
+                )} */}
+                
               </div>
               <p className="text-green-600">
                 In Stock — Ships within 24 hours
@@ -144,19 +161,9 @@ export default function BookDetailPage() {
               <div>
                 <p className="text-sm mb-2">Format</p>
                 <div className="flex flex-wrap gap-2">
-                  {book.formats.map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => setFormat(f)}
-                      className={`px-4 py-2 border rounded ${
-                        format === f
-                          ? "border-[#E3B23C] bg-[#fdf7e6]"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      {f.charAt(0).toUpperCase() + f.slice(1)}
-                    </button>
-                  ))}
+                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
+                      {bookById?.formatName}
+                    </span>
                 </div>
               </div>
 
@@ -164,9 +171,9 @@ export default function BookDetailPage() {
               <div className="flex items-center space-x-4">
                 <p className="text-sm">Quantity</p>
                 <div className="flex items-center border rounded">
+                  
                   <button
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    disabled={qty === 1}
+                     onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty === 1}
                     className="px-3 py-1 border-r"
                   >
                     <MinusIcon size={16} />
@@ -183,12 +190,12 @@ export default function BookDetailPage() {
 
               {/* Actions */}
               <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/cart"
+                <button
+                  onClick={() =>handleAddToCartClick(bookById?.stockCount, qty, bookById?.bookId)}
                   className="bg-[#E3B23C] hover:bg-[#d1a436] text-white px-6 py-3 rounded font-bold"
                 >
                   Add to Cart
-                </Link>
+                </button>
                 <Link
                   href="/wishlist"
                   className="border border-[#2C3E50] text-[#2C3E50] px-6 py-3 rounded flex items-center"
@@ -203,19 +210,19 @@ export default function BookDetailPage() {
             <div className="border-t pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
               <div>
                 <p>Publication Date</p>
-                <p>{book.publication}</p>
+                <p> {new Date(bookById.publicationDate).toLocaleDateString()}</p>
               </div>
               <div>
                 <p>ISBN</p>
-                <p>{book.isbn}</p>
+                <p>{bookById.isbn}</p>
               </div>
               <div>
                 <p>Language</p>
-                <p>{book.language}</p>
+                <p>{bookById.bookLanguage}</p>
               </div>
               <div>
                 <p>Pages</p>
-                <p>{book.pages}</p>
+                <p>{bookById.pages}</p>
               </div>
             </div>
           </div>
@@ -245,9 +252,7 @@ export default function BookDetailPage() {
           <div className="pt-6 space-y-6">
             {tab === "description" && (
               <p className="leading-relaxed">
-                In “The Silent Echo,” a mystery unfolds in Millfield as detective Amelia
-                Hayes returns to solve a decades-old disappearance. Every clue
-                brings her closer to a breathtaking revelation.
+                {bookById.bookDescription}
               </p>
             )}
             {tab === "reviews" && (
@@ -295,11 +300,16 @@ export default function BookDetailPage() {
                     href={`/catalogue/${b.id}`}
                     className="block bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition"
                   >
-                    <img
-                      src={b.cover}
-                      alt={b.title}
-                      className="w-full h-40 object-cover"
-                    />
+                    {bookById.imageUrl ? (
+                      <img
+                        src={b.imageUrl}
+                        alt={b.title}
+                        className="w-full h-40 object-cover"
+                      />
+                    ): (
+                      <div className="w-full h-40 flex items-center justify-center"> No Image Available</div>
+                    )}
+                    
                     <div className="p-4">
                       <h4 className="font-semibold">{b.title}</h4>
                       <p className="text-sm text-gray-600">{b.author}</p>

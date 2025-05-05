@@ -56,11 +56,17 @@ namespace backend.Controllers
 
 
         if (!string.IsNullOrEmpty(genreName))
-        {
-            query = query.Where(b => b.GenreName == genreName);
-        }
-        if (!string.IsNullOrEmpty(authorName)) query = query.Where(b => b.AuthorName == authorName);
-        if (!string.IsNullOrEmpty(publisherName)) query = query.Where(b => b.PublisherName == publisherName);
+            {
+                query = query.Where(b => b.GenreName.Contains(genreName));
+            }
+            if (!string.IsNullOrEmpty(authorName))
+            {
+                query = query.Where(b => b.AuthorName.Contains(authorName));
+            }
+            if (!string.IsNullOrEmpty(publisherName))
+            {
+                query = query.Where(b => b.PublisherName.Contains(publisherName));
+            }
         if (!string.IsNullOrEmpty(formatName)) query = query.Where(b => b.FormatName == formatName);
         if (!string.IsNullOrEmpty(bookLanguage)) query = query.Where(b => b.BookLanguage == bookLanguage);
         if (minPrice.HasValue) query = query.Where(b => b.BookPrice >= minPrice.Value);
@@ -103,6 +109,8 @@ namespace backend.Controllers
 
 // For pagination features
         var totalItems = await query.CountAsync();
+
+        
         var books = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

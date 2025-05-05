@@ -180,8 +180,10 @@ const AddBook = ({  setShowForm }) => {
     className="w-full p-2 border border-gray-300 rounded"
   >
     <option value="Fiction">Fiction</option>
-    <option value="Non-Fiction">Non-Fiction</option>
-    <option value="Children's">Children's</option>
+        <option value="Mystery">Mystery</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+      <option value="Children's">Children's</option>
+        <option value="Non-Fiction">Non-Fiction</option>
   </select>
 
   {/* Format */}
@@ -194,6 +196,8 @@ const AddBook = ({  setShowForm }) => {
   >
     <option value="Paperback">Paperback</option>
     <option value="Hardcover">Hardcover</option>
+    <option value="Deluxe">Deluxe</option>
+    <option value="Signed">Signed</option>
     <option value="Ebook">Ebook</option>
   </select>
 

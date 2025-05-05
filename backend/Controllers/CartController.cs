@@ -113,6 +113,7 @@ public class CartController : ControllerBase
                     UnitPrice = book.BookPrice
                 };
                 cart.CartItems.Add(cartItem);
+                _context.CartItems.Add(cartItem);
             }
 
             await _context.SaveChangesAsync();

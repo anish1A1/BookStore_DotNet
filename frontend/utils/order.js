@@ -10,6 +10,7 @@ export const OrderProvider =({children}) => {
     const [cartItems, setCartItems] = useState([]);
     const [orderById, setOrderById] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [wishlists, setWishlists] = useState([]);
 
 
     const fetchCart = async () => {
@@ -34,10 +35,10 @@ export const OrderProvider =({children}) => {
         }
     };
 
-    const AddToCart = async (bookId, quantity = 1) => {
+    const AddToCart = async (bookId, quantity) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.post('/cart', { bookId, quantity }, {
+            const response = await axios.post(`/cart/${bookId}`, { bookId, quantity }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
