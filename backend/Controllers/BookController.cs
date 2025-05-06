@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
-    [Route("book")]
+    [Route("book")] 
     [ApiController]
     public class BookController : ControllerBase
     {

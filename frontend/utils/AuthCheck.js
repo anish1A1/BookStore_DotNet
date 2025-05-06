@@ -1,10 +1,9 @@
-
-// app/page.jsx
-'use client';
+"use client";
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
+import axios from './axios';
 
 export default function CheckAuth() {
   const router = useRouter();
@@ -14,18 +13,23 @@ export default function CheckAuth() {
 
     if (token) {
       try {
-        // Validate the token by decoding it
-        jwtDecode(token);
-        // If decoding succeeds, redirect to /home
-        router.push('/home');
+        const decoded = jwtDecode(token);
+        const userRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        if (userRole === "Admin") {
+          router.push('/admin/dashboard');
+        } else if (userRole === "Staff") {
+          router.push('/staff');
+        } else if (userRole === "Member") {
+          router.push('/profile');
+        } else {
+          router.push('/login');
+        }
       } catch (err) {
-        // If token is invalid, clear it and redirect to /register
         console.error('Invalid token on root route:', err);
         localStorage.removeItem('token');
         router.push('/register');
       }
     } else {
-      // No token, redirect to /register
       router.push('/register');
     }
   }, [router]);

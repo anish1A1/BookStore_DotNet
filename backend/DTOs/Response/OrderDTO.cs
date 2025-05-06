@@ -12,4 +12,5 @@ public class OrderDTO
     public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
     public List<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>();
+    public UserDTO? User { get; set; }
 }
