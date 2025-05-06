@@ -19,6 +19,7 @@ public class BookDTO
     public string FormatName { get; set; } = string.Empty;
     public decimal? Rating { get; set; }
     public int TotalSales { get; set; }
+    public decimal DiscountedPrice {get; set;}
     public string ImageUrl { get; set; } = string.Empty;
     public bool IsExclusive { get; set; } = false;
     public bool IsAwardWinner { get; set; } = false;

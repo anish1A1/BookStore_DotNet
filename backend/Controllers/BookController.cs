@@ -41,6 +41,7 @@ namespace backend.Controllers
     {
         var query = _context.Books
             .Include(b => b.Inventory)
+            .Include(b => b.Discounts.Where(d => d.EndDate > DateTime.UtcNow))  //adding discounts too
             .AsQueryable();
 
 //For filtering purposes
@@ -123,9 +124,12 @@ namespace backend.Controllers
                 PublicationDate = b.PublicationDate,
                 BookLanguage = b.BookLanguage,
                 BookPrice = b.BookPrice,
+                DiscountedPrice = b.Discounts.Any() ? b.BookPrice * (1- b.Discounts.OrderByDescending(d => d.StartDate).First().Percentage / 100) : b.BookPrice,
+
                 StockCount = b.Inventory != null ? b.Inventory.StockCount : 0,
                 LibraryAvailable = b.LibraryAvailable,
                 AuthorName = b.AuthorName,
+
                 PublisherName = b.PublisherName,
                 GenreName = b.GenreName,
                 FormatName = b.FormatName,
@@ -145,6 +149,8 @@ namespace backend.Controllers
             Books = books
         });
     }
+
+
     
     // GET: /book/{id}
     [HttpGet("{id}")]
@@ -185,14 +191,14 @@ namespace backend.Controllers
 
     // POST: /book
    [Authorize(Roles = "Admin")]
-[HttpPost("create")]
-public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO createBookDTO, IFormFile imageFile)
-{
-    var existingBook = await _context.Books.FirstOrDefaultAsync(b => b.ISBN == createBookDTO.ISBN);
-    if (existingBook != null)
+    [HttpPost("create")]
+    public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO createBookDTO, IFormFile imageFile)
     {
-        return BadRequest(new { Message = "A book with this ISBN already exists." });
-    }
+        var existingBook = await _context.Books.FirstOrDefaultAsync(b => b.ISBN == createBookDTO.ISBN);
+        if (existingBook != null)
+        {
+            return BadRequest(new { Message = "A book with this ISBN already exists." });
+        }
 
 
     
