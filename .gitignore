@@ -28,3 +28,5 @@ backend/Migrations/20250503031320_InitialCreate.Designer.cs
 backend/Migrations/ApplicationDbContextModelSnapshot.cs
 backend/Migrations/20250503031320_InitialCreate.Designer.cs
 backend/Migrations/20250503031320_InitialCreate.Designer.cs
+backend/Migrations/
+backend/uploads/

@@ -56,11 +56,17 @@ namespace backend.Controllers
 
 
         if (!string.IsNullOrEmpty(genreName))
-        {
-            query = query.Where(b => b.GenreName == genreName);
-        }
-        if (!string.IsNullOrEmpty(authorName)) query = query.Where(b => b.AuthorName == authorName);
-        if (!string.IsNullOrEmpty(publisherName)) query = query.Where(b => b.PublisherName == publisherName);
+            {
+                query = query.Where(b => b.GenreName.Contains(genreName));
+            }
+            if (!string.IsNullOrEmpty(authorName))
+            {
+                query = query.Where(b => b.AuthorName.Contains(authorName));
+            }
+            if (!string.IsNullOrEmpty(publisherName))
+            {
+                query = query.Where(b => b.PublisherName.Contains(publisherName));
+            }
         if (!string.IsNullOrEmpty(formatName)) query = query.Where(b => b.FormatName == formatName);
         if (!string.IsNullOrEmpty(bookLanguage)) query = query.Where(b => b.BookLanguage == bookLanguage);
         if (minPrice.HasValue) query = query.Where(b => b.BookPrice >= minPrice.Value);
@@ -103,6 +109,8 @@ namespace backend.Controllers
 
 // For pagination features
         var totalItems = await query.CountAsync();
+
+        
         var books = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -124,7 +132,8 @@ namespace backend.Controllers
                 Rating = b.Rating,
                 TotalSales = b.TotalSales,
                 IsAwardWinner = b.IsAwardWinner,
-                IsExclusive = b.IsExclusive
+                IsExclusive = b.IsExclusive,
+                ImageUrl = b.ImageUrl ?? ""
             })
             .ToListAsync();
         return Ok(new
@@ -161,7 +170,8 @@ namespace backend.Controllers
                 Rating = b.Rating,
                 TotalSales = b.TotalSales,
                 IsAwardWinner = b.IsAwardWinner,
-                IsExclusive = b.IsExclusive
+                IsExclusive = b.IsExclusive,
+                ImageUrl = b.ImageUrl ?? ""
             })
             .FirstOrDefaultAsync(b => b.BookId == id);
 
@@ -174,66 +184,103 @@ namespace backend.Controllers
     }
 
     // POST: /book
-    [Authorize(Roles = "Admin")]
-    [HttpPost]
-    public async Task<ActionResult<BookDTO>> CreateBook(CreateBookDTO createBookDTO)
+   [Authorize(Roles = "Admin")]
+[HttpPost("create")]
+public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO createBookDTO, IFormFile imageFile)
+{
+    var book = new Book
     {
-        var book = new Book
+        BookId = Guid.NewGuid(),
+        ISBN = createBookDTO.ISBN,
+        BookTitle = createBookDTO.BookTitle,
+        BookDescription = createBookDTO.BookDescription,
+        PublicationDate = DateTime.SpecifyKind(createBookDTO.PublicationDate, DateTimeKind.Utc),
+        BookLanguage = createBookDTO.BookLanguage,
+        BookPrice = createBookDTO.BookPrice,
+        LibraryAvailable = createBookDTO.LibraryAvailable,
+        AuthorName = createBookDTO.AuthorName,
+        PublisherName = createBookDTO.PublisherName,
+        GenreName = createBookDTO.GenreName,
+        FormatName = createBookDTO.FormatName,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+        IsAwardWinner = createBookDTO.IsAwardWinner,
+        IsExclusive = createBookDTO.IsExclusive,
+        ImageUrl = string.Empty
+    };
+
+    //  Handling Image Upload Properly
+    if (imageFile != null && imageFile.Length > 0)
+    {
+        Console.WriteLine($"Received image file: {imageFile.FileName}, Length: {imageFile.Length}");
+        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+        if (!Directory.Exists(uploadsPath))
         {
-            BookId = Guid.NewGuid(),
-            ISBN = createBookDTO.ISBN,
-            BookTitle = createBookDTO.BookTitle,
-            BookDescription = createBookDTO.BookDescription,
-            PublicationDate = createBookDTO.PublicationDate,
-            BookLanguage = createBookDTO.BookLanguage,
-            BookPrice = createBookDTO.BookPrice,
-            LibraryAvailable = createBookDTO.LibraryAvailable,
-            AuthorName = createBookDTO.AuthorName,
-            PublisherName = createBookDTO.PublisherName,
-            GenreName = createBookDTO.GenreName,
-            FormatName = createBookDTO.FormatName,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsAwardWinner = createBookDTO.IsAwardWinner,
-            IsExclusive = createBookDTO.IsExclusive
-        };
+            Directory.CreateDirectory(uploadsPath);
+        }
 
-        var inventory = new Inventory
+        var fileName = $"{Guid.NewGuid()}_{imageFile.FileName}";
+        var filePath = Path.Combine(uploadsPath, fileName);
+        Console.WriteLine($"Saving to: {filePath}");
+
+        try
         {
-            Id = Guid.NewGuid(),
-            BookId = book.BookId,
-            Book = book,
-            StockCount = createBookDTO.InitialStockCount,
-            LastUpdated = DateTime.UtcNow
-        };
-
-        book.Inventory = inventory;
-
-        _context.Books.Add(book);
-        await _context.SaveChangesAsync();
-
-        var bookDTO = new BookDTO
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+            book.ImageUrl = $"/uploads/{fileName}"; // Store relative path
+            Console.WriteLine($"Image saved with URL: {book.ImageUrl}");
+        }
+        catch (Exception ex)
         {
-            BookId = book.BookId,
-            ISBN = book.ISBN,
-            BookTitle = book.BookTitle,
-            BookDescription = book.BookDescription,
-            PublicationDate = book.PublicationDate,
-            BookLanguage = book.BookLanguage,
-            BookPrice = book.BookPrice,
-            StockCount = book.Inventory.StockCount,
-            LibraryAvailable = book.LibraryAvailable,
-            AuthorName = book.AuthorName,
-            PublisherName = book.PublisherName,
-            GenreName = book.GenreName,
-            FormatName = book.FormatName,
-            Rating = book.Rating,
-            TotalSales = book.TotalSales,
-            IsAwardWinner = book.IsAwardWinner,
-            IsExclusive = book.IsExclusive
-        };
-        return CreatedAtAction(nameof(GetBook), new { id = book.BookId }, bookDTO);
+            Console.WriteLine($"Error saving image: {ex.Message}");
+            return StatusCode(500, new { Message = "Error saving image" });
+        }
     }
+    else
+    {
+        Console.WriteLine("No image file received.");
+    }
+
+    var inventory = new Inventory
+    {
+        Id = Guid.NewGuid(),
+        BookId = book.BookId,
+        Book = book,
+        StockCount = createBookDTO.InitialStockCount,
+        LastUpdated = DateTime.UtcNow
+    };
+
+    book.Inventory = inventory;
+
+    _context.Books.Add(book);
+    await _context.SaveChangesAsync();
+
+    var bookDTO = new BookDTO
+    {
+        BookId = book.BookId,
+        ISBN = book.ISBN,
+        BookTitle = book.BookTitle,
+        BookDescription = book.BookDescription,
+        PublicationDate = book.PublicationDate,
+        BookLanguage = book.BookLanguage,
+        BookPrice = book.BookPrice,
+        StockCount = book.Inventory.StockCount,
+        LibraryAvailable = book.LibraryAvailable,
+        AuthorName = book.AuthorName,
+        PublisherName = book.PublisherName,
+        GenreName = book.GenreName,
+        FormatName = book.FormatName,
+        Rating = book.Rating,
+        TotalSales = book.TotalSales,
+        IsAwardWinner = book.IsAwardWinner,
+        IsExclusive = book.IsExclusive,
+        ImageUrl = book.ImageUrl // ✅ Send Image URL in response
+    };
+
+    return CreatedAtAction(nameof(GetBook), new { id = book.BookId }, bookDTO);
+}
 
     // PUT: book/{id}
     [Authorize(Roles = "Admin")]
@@ -249,7 +296,7 @@ namespace backend.Controllers
         book.ISBN = updateBookDTO.ISBN;
         book.BookTitle = updateBookDTO.BookTitle;
         book.BookDescription = updateBookDTO.BookDescription;
-        book.PublicationDate = updateBookDTO.PublicationDate;
+        book.PublicationDate = DateTime.SpecifyKind(updateBookDTO.PublicationDate, DateTimeKind.Utc);
         book.BookLanguage = updateBookDTO.BookLanguage;
         book.BookPrice = updateBookDTO.BookPrice;
         book.LibraryAvailable = updateBookDTO.LibraryAvailable;

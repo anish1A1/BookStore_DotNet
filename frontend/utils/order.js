@@ -10,6 +10,7 @@ export const OrderProvider =({children}) => {
     const [cartItems, setCartItems] = useState([]);
     const [orderById, setOrderById] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [wishlists, setWishlists] = useState([]);
 
 
     const fetchCart = async () => {
@@ -34,10 +35,10 @@ export const OrderProvider =({children}) => {
         }
     };
 
-    const AddToCart = async (bookId, quantity = 1) => {
+    const AddToCart = async (bookId, quantity) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.post('/cart', { bookId, quantity }, {
+            const response = await axios.post(`/cart/${bookId}`, { quantity }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -57,12 +58,15 @@ export const OrderProvider =({children}) => {
     const updateCart = async (bookId, quantity) => {
         const token = localStorage.getItem('token');
         try {
+            console.log("Sending PUT request to:", `/cart/${bookId}`, "with payload:", { quantity });
+            console.log("Authorization header:", `Bearer ${token}`);
             const response = await axios.put(`/cart/${bookId}`, { quantity }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
             setCartItems(prevCart => prevCart.map(item => item.id === bookId ? response.data : item));
+            console.log("Data is ", response.data);
             return { status: 'success', message: 'Book quantity updated successfully' }
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error updating book quantity';
@@ -137,18 +141,84 @@ export const OrderProvider =({children}) => {
         }
     };
 
+    const AddToWishList = async (bookId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.post(`/wishlist/${bookId}`, { bookId }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setWishlists((prevWishlists) => [...prevWishlists, response.data]);
+            return { status: 'success', message: 'Book added to wishlist successfully' }
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error adding book to wishlist';
+            
+            console.error('Error adding book to wishlist',errorMessage);
+            throw errorMessage.response.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getAllWishList = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`/wishlist/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setWishlists(response.data);
+            setLoading(false);    
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error fetching wishlist';
+            
+            console.error('Error fetching the wishlist',errorMessage);
+            throw errorMessage.response.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const removeFromWishList = async (bookId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.delete(`/wishlist/${bookId}/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setWishlists(prevWishlists => prevWishlists.filter(item => item.id !== bookId));
+            console.log("Wishlist removed ", response.data);
+            return { status: 'success', message: 'Book removed from wishlist successfully' }
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error removing book from wishlist';
+            
+            console.error('Error removing book from wishlist',errorMessage);
+            throw error?.response?.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     const values = useMemo(() => ({
         orders,
         orderById,
         loading,
         cartItems,
+        wishlists,
         fetchOrders,
         fetchOrdersById,
         AddToCart,
         removeFromCart,
         updateCart,
-        fetchCart
-    }), [orders, cartItems, orderById, loading]);
+        fetchCart,
+        AddToWishList,
+        getAllWishList,
+        removeFromWishList
+    }), [orders, cartItems, wishlists, orderById, loading]);
 
     return (
         <OrderContext.Provider value={values}>

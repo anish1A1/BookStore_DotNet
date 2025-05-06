@@ -2,17 +2,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React from "react";
+
+import { usePathname, useRouter } from "next/navigation";
+import React, {useContext, useEffect} from "react";
 import {
   LayoutDashboardIcon,
   BookOpenIcon,
   PercentIcon,
   BellIcon,
 } from "lucide-react";
+import { AuthContext } from "../../../utils/auth";
+import { toast } from "sonner";
 
 export default function Sidebar() {
-  const pathname = usePathname();
+  const {logout} = useContext(AuthContext);
+  const pathname = typeof window !== "undefined" ? usePathname() : "";
+  const router = useRouter();
+  
   const menu = [
     {
       href: "/admin/dashboard",
@@ -34,8 +40,22 @@ export default function Sidebar() {
       label: "Notices",
       icon: <BellIcon size={20} />,
     },
+    
   ];
-
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+  
+  
+  
+  }, [logout, router]);
+  const handleLogOut = async () => {
+    try {
+      const response = await logout(router);
+      toast.success(response?.message || "Logged out successfully");
+    } catch (error) {
+      toast.error("Logout failed!");
+    }
+  };
   return (
     <aside className="w-64 bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 sticky top-0 h-screen flex flex-col">
       {/* Logo */}
@@ -61,12 +81,18 @@ export default function Sidebar() {
               </span>
               <span className="truncate">{label}</span>
             </Link>
+            
           );
         })}
+        <button onClick={handleLogOut} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-200`}>
+          Log Out
+        </button>
       </nav>
+        
 
       {/* Footer / Version */}
       <div className="px-6 py-4 border-t border-gray-200 text-xs text-gray-500">
+        
         v1.0.0
       </div>
     </aside>

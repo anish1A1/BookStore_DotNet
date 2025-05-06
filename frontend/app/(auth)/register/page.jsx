@@ -3,15 +3,46 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-
+import axios from "../../../utils/axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 export default function SignUpPage() {
   const [avatarPreview, setAvatarPreview] = useState(null);
-
+  const [username, setUsername] = useState('');
+  const [UserEmail, setUserEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setAvatarPreview(URL.createObjectURL(file));
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    try {
+      await axios.post('/auth/register', {
+        username,
+        UserEmail,
+        password,
+        confirmPassword
+      });
+      router.push('/login');
+      toast.success('Registration successful');
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        setError(err.response.data.errors); // Store all validation errors
+      } else {
+        setError({ General: ['Registration failed'] });
+      }
+    }  
   };
 
   return (
@@ -43,22 +74,29 @@ export default function SignUpPage() {
           </div>
 
           {/* Sign Up Form */}
-          <h2 className="text-2xl font-semibold mt-6">Create Account</h2>
+          <h2 className="text-2xl font-semibold mt-6 mb-3">Create Account</h2>
+
+          {error && Object.keys(error).map((key) => (
+            <p key={key} style={{ color: 'red', marginBottom: '10px' }}>
+              Error: {error[key].join(', ')}
+            </p>
+          ))}
+
           <form
-            action="/api/signup"
-            method="POST"
-            encType="multipart/form-data"
+            onSubmit={handleSubmit}
             className="mt-4 space-y-4"
           >
             <div>
               <label htmlFor="name" className="block text-gray-700 mb-1">
-                Name
+              Username
               </label>
               <input
-                id="name"
-                name="name"
+                id="Username"
+                name="Username"
                 type="text"
                 placeholder="Enter your name"
+                value={username}
+              onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
@@ -73,6 +111,8 @@ export default function SignUpPage() {
                 name="email"
                 type="email"
                 placeholder="shresthajames21@gmail.com"
+                value={UserEmail}
+                 onChange={(e) => setUserEmail(e.target.value)}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
@@ -100,7 +140,9 @@ export default function SignUpPage() {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
-                required
+                value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
             </div>
@@ -113,6 +155,8 @@ export default function SignUpPage() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
+                value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter your password"
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"

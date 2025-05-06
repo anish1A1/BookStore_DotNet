@@ -10,11 +10,12 @@ export const BookProvider = ({children}) => {
     const [bookById, setBookById] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inventory, setInventory] = useState([]);
-    
+
     const fetchBooks = async( filter = {}) => {
         try {
-            const response = await axios.get('/books', { params: filter});
-            setBooks(response.data);
+            const response = await axios.get('/book', { params: filter});
+            console.log("FetchBooks Response:", response.data);
+            setBooks(response.data.books);
             setLoading(false);    
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error fetching books';
@@ -28,7 +29,7 @@ export const BookProvider = ({children}) => {
 
     const fetchBooksById = async (id) => {
         try {
-            const response = await axios.get(`/books/${id}`);
+            const response = await axios.get(`/book/${id}`);
             setBookById(response.data);
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error fetching books';
@@ -40,23 +41,23 @@ export const BookProvider = ({children}) => {
         }
     };
 
-    const createBook = async (formData, router) => {
+    const createBook = async (formData) => {
         const token = localStorage.getItem('token');
         const data = new FormData();
 
         Object.keys(formData).forEach((key) => {
             data.append(key, formData[key]);
+            console.log(key, formData[key]);
         });
 
         try {
-            const response = await axios.post('/books', data, {
+            const response = await axios.post('/book/create/', data, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setBooks(prevBooks => [...prevBooks, response.data]);
-            router.push('/books');
+            setBooks((prevBooks) => [...prevBooks, response.data]);
             return {status: 'success', message: 'Book created successfully'}
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error creating book';
@@ -77,7 +78,7 @@ export const BookProvider = ({children}) => {
         });
 
         try {
-            const response = await axios.put(`/books/${id}`, data, {
+            const response = await axios.put(`/book/${id}`, data, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`,
@@ -99,7 +100,7 @@ export const BookProvider = ({children}) => {
     const deleteBook = async (id, router) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.delete(`/books/${id}`, {
+            const response = await axios.delete(`/book/${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -120,7 +121,7 @@ export const BookProvider = ({children}) => {
     const updateBookinventory = async (id, formData, router) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.put(`/books/${id}/inventory`, formData, {
+            const response = await axios.put(`/book/${id}/inventory`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

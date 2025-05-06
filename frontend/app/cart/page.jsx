@@ -1,9 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import Link from 'next/link'
 import { MinusIcon, PlusIcon, XIcon } from 'lucide-react'
-
-const initialCartItems = [
+import { OrderContext } from '../../utils/order'
+import { toast } from 'sonner'
+const initialcartItem = [
   {
     id: 1,
     title: 'The Great Gatsby',
@@ -27,45 +28,99 @@ const initialCartItems = [
 ]
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState(initialCartItems)
+  const {removeFromCart, updateCart, fetchCart,  cartItems,loading, fetchOrders, orders } = useContext(OrderContext);
+  const [cartItem, setcartItem] = useState(initialcartItem)
+  const [countQuantity, setCountQuantity] = useState(0);
 
-  // Handlers
-  const increaseQuantity = (id) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+  useEffect(() => {
+    fetchCart()
+    // fetchOrders()
+  },[]);
+  
+  const [quantity, setQuantity] = useState([]);
+  
+  useEffect(() => {
+    const initialQuantities = {};
+    cartItem?.forEach((item) => {
+      initialQuantities[item.id] = item.quantity
+    })
+  },[cartItem]);
+
+  // const handleQuantityChange = (id, qty) => setQuantity({ ...quantity, [id]: qty });
+
+  const increaseQuantity = async (cartItemId, currentQuantity) => {
+    const newQuantity = currentQuantity + 1;
+    await updateQuantity(cartItemId, newQuantity);
+    fetchCart(); // refresh cart from backend
+  };
+  
+  const decreaseQuantity = async (cartItemId, currentQuantity) => {
+    if (currentQuantity <= 1) return;
+    const newQuantity = currentQuantity - 1;
+    await updateQuantity(cartItemId, newQuantity);
+    fetchCart(); // refresh cart from backend
+  };
+  
+
+
+
+      const updateQuantity = async (id, quantity) => {
+
+        setQuantity((prev) => ({ ...prev, [id]: quantity }));
+        console.log("Data is ", id, quantity);
+        try {
+          const response = await updateCart(id, quantity);
+          toast.success(response.message);
+        } catch (error) {
+          toast.error(error?.response?.data?.message || "Failed to update quantity");
+          console.error("Failed to update quantity:", error?.response);
+
+          setQuantity((prev) => ({ ...prev, [id]: prev[id] }));
+        }
+      };
+
+      const removeItem = async (bookId) => {
+        try {
+          const response = await removeFromCart(bookId);
+          toast.success(response.message);
+          fetchCart();
+        } catch (error) {
+          toast.error(error?.response?.data?.message || "Failed to Remove from Cart");
+          console.error("Failed to Remove from Cart:", error?.response);
+        }
+      };
+
+
+      // Totals
+      const subtotal = cartItems?.reduce((sum, item) => {
+        const price = item?.onSale ? item?.salePrice : item?.bookPrice
+        return sum + price * item?.quantity
+      }, 0)
+      const discountPercent = 5
+      const discount = parseFloat(
+        (subtotal * (discountPercent / 100)).toFixed(2)
       )
-    )
-  }
+      const total = parseFloat((subtotal - discount).toFixed(2))
+      
 
-  const decreaseQuantity = (id) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    )
-  }
 
-  const removeItem = (id) => {
-    setCartItems((items) => items.filter((item) => item.id !== id))
-  }
+      const validCartItems = Array.isArray(cartItems) ? cartItems : [];
 
-  const clearCart = () => setCartItems([])
+      const totalQuantity = validCartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Totals
-  const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.onSale ? item.salePrice : item.price
-    return sum + price * item.quantity
-  }, 0)
-  const discountPercent = 5
-  const discount = parseFloat(
-    (subtotal * (discountPercent / 100)).toFixed(2)
-  )
-  const total = parseFloat((subtotal - discount).toFixed(2))
+      const totalPrice = validCartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+      
+      const discountBy5Percent = totalQuantity >= 5 ? totalPrice * 0.05 : 0;
+          // console.log("cartItems", cartItems);
+          // console.log("totalQuantity", totalQuantity);
+          // console.log("totalPrice", totalPrice);
+          // console.log("discountBy5Percent", discountBy5Percent);
+
+
+
+      if(loading) {
+        return <p className='text-center py-20'>Loading...</p>
+      }
 
   return (
     <div className="min-h-screen bg-white">
@@ -84,27 +139,37 @@ export default function CartPage() {
               </div>
               {cartItems.map((item) => (
                 <div
-                  key={item.id}
+                  key={item?.cartItemId + item?.book?.bookId}
                   className="flex flex-col md:flex-row items-center border-b py-4"
                 >
                   {/* Product Info */}
                   <div className="w-full md:w-1/2 flex items-center mb-4 md:mb-0">
                     <div className="w-20 h-24 bg-gray-100 rounded overflow-hidden mr-4">
+                      
+                      {console.log("Item Book ImageUrl:", item?.book?.imageUrl)}
+                      {item?.book?.imageUrl ? (
                       <img
-                        src={item.cover}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
+                        src={`http://localhost:5189${item?.book?.imageUrl}`}
+                        alt={item?.book?.bookTitle}
+                        className="w-full  object-cover rounded"
                       />
+                    ) : (
+                      <div className="w-full flex items-center justify-center bg-gray-200 rounded">
+                        <span className="text-gray-600">No Image Available</span>
+                      </div>
+                    )}
+                    
+
                     </div>
                     <div>
-                      <h3 className="font-bold">{item.title}</h3>
-                      <p className="text-sm text-gray-600">{item.author}</p>
-                      <p className="text-xs text-gray-500">Format: Hardcover</p>
+                      <h3 className="font-bold">{item?.book?.bookTitle}</h3>
+                      <p className="text-sm text-gray-600">{item?.book?.authorName}</p>
+                      <p className="text-xs text-gray-500">Format: {item?.boo?.formatName}</p>
                       <button
-                        onClick={() => removeItem(item.id)}
-                        className="text-red-500 text-xs flex items-center mt-2 md:hidden"
+                        onClick={() => updateQuantity(item.cartItemId)}
+                        className="text-red-500 text-xs flex items-center mt-2 md:hidden cursor-pointer p-3 "
                       >
-                        <XIcon size={14} className="mr-1" /> Remove
+                        <XIcon size={18} className="mr-1 cursor-pointer" /> Remove
                       </button>
                     </div>
                   </div>
@@ -112,38 +177,39 @@ export default function CartPage() {
                   {/* Price */}
                   <div className="w-full md:w-1/6 text-center mb-4 md:mb-0">
                     <div className="md:hidden text-sm text-gray-500 mb-1">Price:</div>
-                    ${(item.onSale ? item.salePrice : item.price).toFixed(2)}
+                    ${item.onSale ? item.salePrice : item?.book?.bookPrice}
                   </div>
 
-                  {/* Quantity */}
                   <div className="w-full md:w-1/6 flex justify-center mb-4 md:mb-0">
-                    <div className="md:hidden text-sm text-gray-500 mr-2">Qty:</div>
-                    <div className="flex items-center border rounded">
-                      <button
-                        onClick={() => decreaseQuantity(item.id)}
-                        className="px-2 py-1 border-r"
-                        disabled={item.quantity <= 1}
-                      >
-                        <MinusIcon size={14} />
-                      </button>
-                      <span className="px-3">{item.quantity}</span>
-                      <button
-                        onClick={() => increaseQuantity(item.id)}
-                        className="px-2 py-1 border-l"
-                      >
-                        <PlusIcon size={14} />
-                      </button>
-                    </div>
+                  <div className="md:hidden text-sm text-gray-500 mr-2">Qty:</div>
+                  <div className="flex items-center border rounded">
+                    <button
+                      onClick={() => decreaseQuantity(item.book.bookId, item.quantity)}
+                      className="px-2 py-1 border-r"
+                      disabled={item.quantity <= 1}
+                    >
+                      <MinusIcon size={14} />
+                    </button>
+                    <span className="px-3">{item.quantity}</span>
+                    <button
+                      onClick={() => increaseQuantity(item.book.bookId, item.quantity)}
+                      className="px-2 py-1 border-l"
+                    >
+                      <PlusIcon size={14} />
+                    </button>
                   </div>
+                </div>
+
 
                   {/* Total & Remove */}
                   <div className="w-full md:w-1/6 text-right mb-4 md:mb-0">
                     <div className="md:hidden text-sm text-gray-500 mb-1">Total:</div>
                     <span className="font-bold">
-                      $ {((item.onSale ? item.salePrice : item.price) * item.quantity).toFixed(2)}
+                      {/* $ {((item.onSale ? item.salePrice : item.price) * item.quantity).toFixed(2)} */}
+                      ${item.unitPrice * item.quantity}
                     </span>
                     <button
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item?.book?.bookId)}
                       className="text-red-500 text-xs hidden md:block mt-2"
                     >
                       Remove
@@ -157,9 +223,7 @@ export default function CartPage() {
                 <Link href="/catalog" className="text-[#E3B23C] font-bold hover:underline">
                   Continue Shopping
                 </Link>
-                <button onClick={clearCart} className="text-[#2C3E50] hover:underline">
-                  Clear Cart
-                </button>
+                
               </div>
             </div>
 
@@ -170,17 +234,23 @@ export default function CartPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>${!isNaN(totalPrice) ? totalPrice.toFixed(2) : '0.00'}</span>
+
                   </div>
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount ({discountPercent}%)</span>
-                    <span>-${discount.toFixed(2)}</span>
+                  {totalQuantity && totalQuantity >= 5 && (
+                    
+                    <div className="flex justify-between text-green-600">
+                    <span>Discount (5%)</span>
+                    <span>-${discountBy5Percent.toFixed(2)}</span>
                   </div>
+                  )}
                 </div>
                 <div className="border-t pt-4 mb-6">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>
+                    ${!isNaN(totalPrice - discountBy5Percent) ? (totalPrice - discountBy5Percent).toFixed(2) : '0.00'}
+                  </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Order 3 more books to qualify for 10% discount

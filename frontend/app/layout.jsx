@@ -6,6 +6,7 @@ import Footer from './components/footer'
 import { AuthProvider } from '../utils/auth'
 import { BookProvider } from '../utils/book'
 import { OrderProvider } from '../utils/order'
+import { Toaster } from "sonner";
 
 export default function RootLayout({ children }) {
   return (
@@ -16,7 +17,10 @@ export default function RootLayout({ children }) {
             <OrderProvider>
 
         <Navbar />
-        <main className="flex-grow">{children}</main>
+        <main className="flex-grow">
+        <Toaster position="top-center" />
+        {children}
+        </main>
         <Footer />
 
 

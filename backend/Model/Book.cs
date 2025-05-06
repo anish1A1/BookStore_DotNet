@@ -20,7 +20,7 @@ public class Book
     public int TotalSales { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
+    public string ImageUrl { get; set; } = string.Empty;
     public bool IsExclusive { get; set; } = false;
     public bool IsAwardWinner { get; set; } = false;
 

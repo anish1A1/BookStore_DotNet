@@ -1,9 +1,32 @@
 // app/login/page.jsx
 "use client";
-
+import { toast } from "sonner";
 import Link from "next/link";
 
+import { useState, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AuthContext } from "../../../utils/auth";
 export default function LoginPage() {
+  const {login} = useContext(AuthContext);
+  const [credentials, setCredentials]  = useState({username: '', password: ''});
+  const router = useRouter();
+
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await login(credentials, router);
+      if (response) {
+        toast.success(response.message);
+      }
+    } catch (error) {
+      toast.error(error);
+      console.log(error);
+    }
+  };
+
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <div className="flex w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
@@ -36,16 +59,17 @@ export default function LoginPage() {
           <h2 className="text-2xl text-[#2C3F51] font-semibold mt-6">
             Log In
           </h2>
-          <form action="/api/login" method="POST" className="mt-4 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div>
-              <label htmlFor="email" className="block text-gray-700 mb-1">
-                Email Address
+              <label htmlFor="username" className="block text-gray-700 mb-1">
+                Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="shresthajames21@gmail.com"
+                id="username"
+                name="username"
+                placeholder="James"
+                value={credentials.username}
+                onChange={(e) => setCredentials({...credentials, username: e.target.value})}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
@@ -60,6 +84,8 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 placeholder="••••••••"
+                value={credentials.password}
+                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
