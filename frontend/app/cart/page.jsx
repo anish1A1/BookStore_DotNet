@@ -30,6 +30,7 @@ const initialcartItem = [
 export default function CartPage() {
   const {removeFromCart, updateCart, fetchCart,  cartItems,loading, fetchOrders, orders } = useContext(OrderContext);
   const [cartItem, setcartItem] = useState(initialcartItem)
+  const [countQuantity, setCountQuantity] = useState(0);
 
   useEffect(() => {
     fetchCart()
@@ -62,10 +63,11 @@ export default function CartPage() {
   
 
 
+
       const updateQuantity = async (id, quantity) => {
 
         setQuantity((prev) => ({ ...prev, [id]: quantity }));
-        console.log(id, quantity);
+        console.log("Data is ", id, quantity);
         try {
           const response = await updateCart(id, quantity);
           toast.success(response.message);
@@ -99,6 +101,21 @@ export default function CartPage() {
         (subtotal * (discountPercent / 100)).toFixed(2)
       )
       const total = parseFloat((subtotal - discount).toFixed(2))
+      
+
+
+      const validCartItems = Array.isArray(cartItems) ? cartItems : [];
+
+      const totalQuantity = validCartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+      const totalPrice = validCartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+      
+      const discountBy5Percent = totalQuantity >= 5 ? totalPrice * 0.05 : 0;
+          // console.log("cartItems", cartItems);
+          // console.log("totalQuantity", totalQuantity);
+          // console.log("totalPrice", totalPrice);
+          // console.log("discountBy5Percent", discountBy5Percent);
+
 
 
       if(loading) {
@@ -141,6 +158,7 @@ export default function CartPage() {
                         <span className="text-gray-600">No Image Available</span>
                       </div>
                     )}
+                    
 
                     </div>
                     <div>
@@ -216,20 +234,23 @@ export default function CartPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>${!isNaN(totalPrice) ? totalPrice.toFixed(2) : '0.00'}</span>
+
                   </div>
-                  {cartItems?.length >= 5 && (
+                  {totalQuantity && totalQuantity >= 5 && (
                     
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount ({discountPercent}%)</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <div className="flex justify-between text-green-600">
+                    <span>Discount (5%)</span>
+                    <span>-${discountBy5Percent.toFixed(2)}</span>
                   </div>
                   )}
                 </div>
                 <div className="border-t pt-4 mb-6">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>
+                    ${!isNaN(totalPrice - discountBy5Percent) ? (totalPrice - discountBy5Percent).toFixed(2) : '0.00'}
+                  </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Order 3 more books to qualify for 10% discount
