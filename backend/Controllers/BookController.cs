@@ -132,7 +132,8 @@ namespace backend.Controllers
                 Rating = b.Rating,
                 TotalSales = b.TotalSales,
                 IsAwardWinner = b.IsAwardWinner,
-                IsExclusive = b.IsExclusive
+                IsExclusive = b.IsExclusive,
+                ImageUrl = b.ImageUrl ?? ""
             })
             .ToListAsync();
         return Ok(new
@@ -169,7 +170,8 @@ namespace backend.Controllers
                 Rating = b.Rating,
                 TotalSales = b.TotalSales,
                 IsAwardWinner = b.IsAwardWinner,
-                IsExclusive = b.IsExclusive
+                IsExclusive = b.IsExclusive,
+                ImageUrl = b.ImageUrl ?? ""
             })
             .FirstOrDefaultAsync(b => b.BookId == id);
 
@@ -204,29 +206,41 @@ public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO cre
         UpdatedAt = DateTime.UtcNow,
         IsAwardWinner = createBookDTO.IsAwardWinner,
         IsExclusive = createBookDTO.IsExclusive,
+        ImageUrl = string.Empty
     };
 
     //  Handling Image Upload Properly
-    if (imageFile != null)
+    if (imageFile != null && imageFile.Length > 0)
     {
+        Console.WriteLine($"Received image file: {imageFile.FileName}, Length: {imageFile.Length}");
         var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-
-        // Ensure the directory exists
         if (!Directory.Exists(uploadsPath))
         {
             Directory.CreateDirectory(uploadsPath);
         }
 
-        //  Define the full file path
-        var filePath = Path.Combine(uploadsPath, imageFile.FileName);
+        var fileName = $"{Guid.NewGuid()}_{imageFile.FileName}";
+        var filePath = Path.Combine(uploadsPath, fileName);
+        Console.WriteLine($"Saving to: {filePath}");
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await imageFile.CopyToAsync(stream);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+            book.ImageUrl = $"/uploads/{fileName}"; // Store relative path
+            Console.WriteLine($"Image saved with URL: {book.ImageUrl}");
         }
-
-        //  Store the correct image path in the book model
-        book.ImageUrl = filePath;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving image: {ex.Message}");
+            return StatusCode(500, new { Message = "Error saving image" });
+        }
+    }
+    else
+    {
+        Console.WriteLine("No image file received.");
     }
 
     var inventory = new Inventory
