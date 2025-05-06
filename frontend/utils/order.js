@@ -179,6 +179,26 @@ export const OrderProvider =({children}) => {
         }
     };
 
+    const removeFromWishList = async (bookId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.delete(`/wishlist/${bookId}/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setWishlists(prevWishlists => prevWishlists.filter(item => item.id !== bookId));
+            console.log("Wishlist removed ", response.data);
+            return { status: 'success', message: 'Book removed from wishlist successfully' }
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error removing book from wishlist';
+            
+            console.error('Error removing book from wishlist',errorMessage);
+            throw error?.response?.data;
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     const values = useMemo(() => ({
@@ -194,7 +214,8 @@ export const OrderProvider =({children}) => {
         updateCart,
         fetchCart,
         AddToWishList,
-        getAllWishList
+        getAllWishList,
+        removeFromWishList
     }), [orders, cartItems, wishlists, orderById, loading]);
 
     return (
