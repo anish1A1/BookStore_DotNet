@@ -181,6 +181,25 @@ export const OrderProvider =({children}) => {
         }
     };
 
+    const placeOrder = async ({ email, cartItems }) => {
+        const token = localStorage.getItem('token');
+        try {
+          setLoading(true);
+          console.log("Placing order:", { email, cartItems });
+          const response = await axios.post('/order', { email, cartItems }, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          await fetchCart(); // Clear cart after successful order
+          return { status: 'success', message: response.data.message || 'Order placed successfully' };
+        } catch (error) {
+          const errorMessage = error.response?.data?.Message || 'Error placing order';
+          console.error('Place order error:', errorMessage, error.response?.data);
+          throw error.response?.data;
+        } finally {
+          setLoading(false);
+        }
+      };
+
 
 
     const values = useMemo(() => ({
@@ -196,7 +215,8 @@ export const OrderProvider =({children}) => {
         updateCart,
         fetchCart,
         AddToWishList,
-        getAllWishList
+        getAllWishList,
+        placeOrder,
     }), [orders, cartItems, wishlists, orderById, loading]);
 
     return (

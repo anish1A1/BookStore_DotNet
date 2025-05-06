@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using backend.Data;
+using backend.DTOs.Request;
 using backend.DTOs.Response;
+using backend.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,46 @@ namespace backend.Controllers
         {
             _context = context;
         }
+
+        [HttpPost("create")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<UserDTO>> CreateUser([FromBody] CreateUserDTO createUserDto)
+        {
+            if (createUserDto.Role != "Staff" && createUserDto.Role != "Member")
+            {
+                return BadRequest(new { Message = "Invalid role. Role must be 'Staff' or 'Member'." });
+            }
+
+            if (await _context.Users.AnyAsync(u => u.UserEmail == createUserDto.UserEmail))
+            {
+                return BadRequest(new { Message = "Email already exists." });
+            }
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                UserName = createUserDto.UserName,
+                UserEmail = createUserDto.UserEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
+                Role = createUserDto.Role,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var userDto = new UserDTO
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                UserEmail = user.UserEmail,
+                Role = user.Role
+            };
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, userDto);
+        }
+
 
         [HttpGet]
         [HttpGet("getallusers")]

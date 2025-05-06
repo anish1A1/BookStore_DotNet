@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "../staff/components/sidebar";
 
 export default function StaffLayout({ children }) {
   return (

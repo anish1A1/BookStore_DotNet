@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
 import { useEffect, useMemo, createContext, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import axios from './axios';
 const AuthContext = createContext();
@@ -15,9 +14,10 @@ export const AuthProvider = ({children}) => {
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
+            console.log('Token from localStorage:', token);
             if (token) {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                // await fetchUserData(token);
+                await fetchUserData(token);
             } else {
                 setLoading(false);
             }
@@ -25,91 +25,90 @@ export const AuthProvider = ({children}) => {
         fetchData();
     }, []);
 
-    const checkUserRole = (token, router) => {
+    const fetchUserData = async (token) => {
         try {
-            const decoded = jwtDecode(token);
-            const userRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-            
-            setRole(userRole); // ✅ Update role state
-    
-            // Redirect based on role
-            if (userRole === "Admin") {
-                router.push("/admin-dashboard");
-            } else if (userRole === "Staff") {
-                router.push("/staff-dashboard");
-            } else if (userRole === "Member") {
-                router.push("/profile");
-            } else {
-                router.push("/login"); // Fallback case
-            }
+            const response = await axios.get('/auth/me');
+            setUser(response.data);
+            checkUserRole(token); // Pass token without router here
         } catch (error) {
-            console.error("Error checking user role:", error);
-            router.push("/login");
+            console.error("Error fetching user data:", error);
+            localStorage.removeItem('token');
+        } finally {
+            setLoading(false);
         }
     };
 
-    // const fetchUserData = async (token) => {
-    //     try {
-    //         const response = await axios.get(`/profile/`);
-    //         setUser(response.data.user);
+    const checkUserRole = (token) => {
+        try {
+            const decoded = jwtDecode(token);
+            const userRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            setRole(userRole);
 
-    //     } catch (error) {
-            
-    //         console.error("Error fetching user data:", error); 
-    //     }finally {
-    //         setLoading(false);
-    //     }
-    // };
+            // Use router from login or fetchUserData context
+            // This will be handled by the calling function (e.g., login)
+        } catch (error) {
+            console.error("Error checking user role:", error);
+        }
+    };
 
     const login = async (credentials, router) => {
         try {
-          const res = await axios.post('/auth/login',credentials);
-          localStorage.setItem('token', res.data.token);
-          const token = localStorage.getItem('token');
-          checkUserRole(token, router);  // This will check the role
-          
-          return { status: 'success', message: "You have been logged in successfully"}
-        
-        } catch (err) {
-            const errorMessgae = err.response?.data?.Message || 'Login failed';
-            console.log(errorMessgae);
-            console.log(err);
-            throw err.response?.data;
-        } finally {
-          setLoading(false);
-        }
-      };
+            const res = await axios.post('/auth/login', credentials);
+            localStorage.setItem('token', res.data.token);
+            const token = localStorage.getItem('token');
+            await fetchUserData(token);
+            const decoded = jwtDecode(token);
+            const userRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            setRole(userRole);
 
-      const logout = async (router) => {
-        try {
-            localStorage.removeItem('token');
-            router.push('/login');
-            setUser(null);
-        } catch (error) {
-            const errorMessgae = err.response?.data?.Message || 'Logout failed';
-            console.log(errorMessgae);
+            if (userRole === "Admin") {
+                router.push("/admin/dashboard");
+            } else if (userRole === "Staff") {
+                router.push("/staff");
+            } else if (userRole === "Member") {
+                router.push("/profile");
+            } else {
+                router.push("/login");
+            }
+            return { status: 'success', message: "You have been logged in successfully" };
+        } catch (err) {
+            const errorMessage = err.response?.data?.Message || 'Login failed';
+            console.log('Login error details:', err.response?.data);
             throw err.response?.data;
         } finally {
             setLoading(false);
         }
-      }
+    };
 
-      const authContextValue = useMemo(() => ({
+    const logout = async (router) => {
+        try {
+            localStorage.removeItem('token');
+            setUser(null);
+            setRole(null);
+            router.push('/login');
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Logout failed';
+            console.log(errorMessage);
+            throw error.response?.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const authContextValue = useMemo(() => ({
         user,
-        loading,    
+        loading,
         errors,
         role,
         login,
         logout,
+    }), [user, loading, errors, role]);
 
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      }), [user, loading, errors, role]);
-      
-      return (
+    return (
         <AuthContext.Provider value={authContextValue}>
           {children}
         </AuthContext.Provider>
-      );
-}
+    );
+};
 
-export {AuthContext};
+export { AuthContext };

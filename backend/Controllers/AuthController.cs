@@ -1,8 +1,10 @@
+using System.Security.Claims;
 using backend.Data;
 using backend.DTOs.Request;
 using backend.DTOs.Response;
 using backend.Model;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -110,5 +112,27 @@ namespace backend.Controllers
                 }
             });
         }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<UserDTO>> GetCurrentUser()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("Invalid token");
+
+            var userId = Guid.Parse(userIdClaim);
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null) return NotFound("User not found");
+
+            return Ok(new UserDTO
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                UserEmail = user.UserEmail,
+                Role = user.Role
+            });
+        }
+        
     }
 }
