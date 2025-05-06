@@ -1,6 +1,7 @@
 // app/staff/components/Sidebar.jsx
 "use client";
 
+import React from 'react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -21,7 +22,7 @@ export default function Sidebar() {
       icon: <LayoutDashboardIcon size={20} />,
     },
     {
-      href: "/staff/orders",
+      href: "/staff/order",
       label: "Orders",
       icon: <ClipboardListIcon size={20} />,
     },

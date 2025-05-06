@@ -63,7 +63,7 @@ export const BookProvider = ({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error creating book';
             
             console.error('Error creating book',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data?.message;
         } finally {
             setLoading(false);
         }
@@ -97,7 +97,7 @@ export const BookProvider = ({children}) => {
         }
     };
     
-    const deleteBook = async (id, router) => {
+    const deleteBook = async (id) => {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.delete(`/book/${id}`, {
@@ -105,17 +105,14 @@ export const BookProvider = ({children}) => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            router.push('/books');
-            setBooks(prevBooks => prevBooks.filter(book => book.id !== id));
+            setBooks((prevBooks) => prevBooks.filter((book) => book.bookId !== id));
             return {status: 'success', message: 'Book deleted successfully'}
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error deleting book';
             
             console.error('Error deleting book',errorMessage);
-            throw errorMessage.response.data;
-        } finally {
-            setLoading(false);
-        }
+            throw error?.response?.data?.message;
+        } 
     };
 
     const updateBookinventory = async (id, formData, router) => {

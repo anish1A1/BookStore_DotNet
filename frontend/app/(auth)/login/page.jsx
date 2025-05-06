@@ -1,36 +1,39 @@
-// app/login/page.jsx
 "use client";
 import { toast } from "sonner";
 import Link from "next/link";
-
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from "../../../utils/auth";
-export default function LoginPage() {
-  const {login} = useContext(AuthContext);
-  const [credentials, setCredentials]  = useState({username: '', password: ''});
-  const router = useRouter();
+import { jwtDecode } from 'jwt-decode';
 
+export default function LoginPage() {
+  const { login } = useContext(AuthContext);
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const router = useRouter();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const response = await login(credentials, router);
       if (response) {
-        toast.success(response.message);
+        const token = localStorage.getItem("token");
+        if (token) {
+          console.log('Decoded Token:', jwtDecode(token));
+          toast.success(response.message);
+        } else {
+          console.log('Token not found in localStorage after login');
+          toast.error('Login successful but token was not stored.');
+        }
       }
     } catch (error) {
-      toast.error(error);
-      console.log(error);
+      console.log('Login error:', error);
+      toast.error(error.message || 'Login failed. Please check your credentials.');
     }
   };
-
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <div className="flex w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Left panel */}
         <div className="w-1/2 bg-[#2C3F51] flex flex-col items-center justify-center p-8 rounded-l-lg rounded-tr-full rounded-br-full">
           <h2 className="text-3xl font-semibold text-white">New here?</h2>
           <p className="text-white text-center mt-4">Create an account.</p>
@@ -41,10 +44,7 @@ export default function LoginPage() {
             SIGN UP
           </Link>
         </div>
-
-        {/* Right panel */}
         <div className="w-1/2 p-8">
-          {/* Logo */}
           <div className="text-center">
             <h1 className="text-2xl font-bold">
               <span className="text-[#2C3F51]">Book</span>
@@ -54,8 +54,6 @@ export default function LoginPage() {
               Express Books
             </p>
           </div>
-
-          {/* Sign In Form */}
           <h2 className="text-2xl text-[#2C3F51] font-semibold mt-6">
             Log In
           </h2>
@@ -69,12 +67,11 @@ export default function LoginPage() {
                 name="username"
                 placeholder="James"
                 value={credentials.username}
-                onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
             </div>
-
             <div>
               <label htmlFor="password" className="block text-gray-700 mb-1">
                 Password
@@ -85,12 +82,11 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
             </div>
-
             <button
               type="submit"
               className="w-full bg-[#2C3F51] text-white py-2 rounded hover:bg-[#012148] transition"
@@ -98,7 +94,6 @@ export default function LoginPage() {
               SIGN IN
             </button>
           </form>
-
           <p className="text-sm text-gray-600 text-center mt-4">
             Forgot your password?{" "}
             <Link href="/forgot-password" className="text-[#2C3F51] hover:underline">

@@ -1,7 +1,7 @@
 // app/staff/layout.jsx
 "use client";
 
-import Sidebar from "./components/Sidebar";
+import Sidebar from "../staff/components/sidebar";
 
 export default function StaffLayout({ children }) {
   return (

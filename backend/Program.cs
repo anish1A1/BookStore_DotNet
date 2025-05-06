@@ -61,6 +61,7 @@ builder.Services.AddAuthorization(options => {
 
 
 builder.Services.AddScoped<TokenServices>();
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 

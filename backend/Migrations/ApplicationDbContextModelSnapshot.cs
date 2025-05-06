@@ -100,6 +100,9 @@ namespace backend.Migrations
                     b.Property<bool>("IsExclusive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsOnSale")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("LibraryAvailable")
                         .HasColumnType("boolean");
 
@@ -201,6 +204,9 @@ namespace backend.Migrations
                     b.Property<Guid?>("BookId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BookId1")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -216,6 +222,9 @@ namespace backend.Migrations
                     b.HasKey("DiscountId");
 
                     b.HasIndex("BookId");
+
+                    b.HasIndex("BookId1")
+                        .IsUnique();
 
                     b.ToTable("Discounts");
                 });
@@ -469,6 +478,10 @@ namespace backend.Migrations
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("backend.Model.Book", null)
+                        .WithOne("CurrentDiscount")
+                        .HasForeignKey("backend.Model.Discount", "BookId1");
+
                     b.Navigation("Book");
                 });
 
@@ -562,6 +575,8 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.Book", b =>
                 {
                     b.Navigation("CartItems");
+
+                    b.Navigation("CurrentDiscount");
 
                     b.Navigation("Discounts");
 

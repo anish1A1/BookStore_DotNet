@@ -4,6 +4,7 @@ import { BookContext } from "../../../utils/book";
 import { useState, useMemo, useEffect, useContext } from "react";
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "lucide-react";
 import AddBook from "../components/AddBook";
+import { toast } from "sonner";
 
 
 export default function BookManagementPage() {
@@ -104,6 +105,7 @@ export default function BookManagementPage() {
         await updateBook(editingId, bookData);
       } else {
         await createBook(bookData);
+        // await fetchBooks();
       }
       
       // await fetchBooks(); // Refresh book list
@@ -114,16 +116,28 @@ export default function BookManagementPage() {
   };
 
   function confirmDelete(id) {
-    setShowDeleteId(id);
+    setShowDeleteId(id); 
   }
 
+  
   const handleDelete = async () => {
+    if (!showDeleteId) {
+      toast.error("No book ID provided for deletion.");
+      return;
+    }
+  
     try {
-      await deleteBook(showDeleteId);
-      await fetchBooks(); // Refresh book list
+      const response = await deleteBook(showDeleteId);
+      if (!response) {
+        throw new Error("Failed to delete book: No response from server");
+      }
+  
       setShowDeleteId(null);
+      toast.message(response.message || "Deleted successfully");
+      await fetchBooks(); // Refresh book list
     } catch (error) {
       console.error("Error deleting book", error);
+      toast.error(error?.response?.data?.message || "Failed to delete book");
     }
   };
 
@@ -198,42 +212,42 @@ export default function BookManagementPage() {
           </thead>
           <tbody>
             {books.map((b) => (
-              <tr key={b.bookId + b.isbn} className="hover:bg-gray-50">
+              <tr key={b?.bookId + b?.isbn} className="hover:bg-gray-50">
                 <td className="p-3 border border-gray-300">
-                  {b.imageUrl ? (
-                    <img src={`http://localhost:5189${b.imageUrl}`} alt={b.BookTitle} className="w-10 h-12 object-cover rounded" />
+                  {b?.imageUrl ? (
+                    <img src={`http://localhost:5189${b.imageUrl}`} alt={b?.BookTitle} className="w-10 h-12 object-cover rounded" />
                   ) : (
                     <span className="text-gray-500">No Image</span>
                   )}
                 </td>
-                <td className="p-3 border border-gray-300">{b.bookTitle}</td>
-                <td className="p-3 border border-gray-300">{b.authorName}</td>
-                <td className="p-3 border border-gray-300">{b.isbn}</td>
-                <td className="p-3 border border-gray-300">{b.genreName}</td>
-                <td className="p-3 border border-gray-300">${b.bookPrice}</td>
+                <td className="p-3 border border-gray-300">{b?.bookTitle}</td>
+                <td className="p-3 border border-gray-300">{b?.authorName}</td>
+                <td className="p-3 border border-gray-300">{b?.isbn}</td>
+                <td className="p-3 border border-gray-300">{b?.genreName}</td>
+                <td className="p-3 border border-gray-300">${b?.bookPrice}</td>
                 <td className="p-3 border border-gray-300">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-3 h-3 rounded-full ${b.InitialStockCount === 0
+                      className={`w-3 h-3 rounded-full ${b?.InitialStockCount === 0
                         ? "bg-red-500"
                         : b.InitialStockCount < 10
                         ? "bg-yellow-500"
                         : "bg-green-500"
                       }`}
                     ></div>
-                    <span>{b.stockCount}</span>
+                    <span>{b?.stockCount}</span>
                   </div>
                 </td>
                 <td className="p-3 border border-gray-300">
                   <div className="flex gap-2">
                     <button
-                      onClick={() => openEdit(b)}
+                      onClick={() => openEdit(b?.bookId)}
                       className="p-1 bg-blue-100 text-blue-700 rounded"
                     >
                       <EditIcon size={16} />
                     </button>
                     <button
-                      onClick={() => confirmDelete(b.id)}
+                      onClick={() => confirmDelete(b?.bookId)}
                       className="p-1 bg-red-100 text-red-700 rounded"
                     >
                       <TrashIcon size={16} />

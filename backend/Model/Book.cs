@@ -24,6 +24,8 @@ public class Book
     public bool IsExclusive { get; set; } = false;
     public bool IsAwardWinner { get; set; } = false;
 
+    public bool IsOnSale {get; set; }
+    public Discount? CurrentDiscount { get; set; }
     public Inventory? Inventory { get; set; }
     public List<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
     public List<CartItem> CartItems { get; set; } = new List<CartItem>();    

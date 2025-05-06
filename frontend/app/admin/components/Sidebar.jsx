@@ -16,9 +16,10 @@ import { toast } from "sonner";
 
 export default function Sidebar() {
   const {logout} = useContext(AuthContext);
-  const pathname = typeof window !== "undefined" ? usePathname() : "";
+  const pathname = usePathname();
   const router = useRouter();
-  
+  const iconColor = typeof window !== "undefined" ? "text-blue-600" : "text-gray-500";
+
   const menu = [
     {
       href: "/admin/dashboard",
@@ -28,7 +29,8 @@ export default function Sidebar() {
     {
       href: "/admin/book-management",
       label: "Books",
-      icon: <BookOpenIcon size={20} />,
+      icon: <BookOpenIcon size={20} className={`lucide lucide-book-open ${iconColor}`} />
+      ,
     },
     {
       href: "/admin/discount",
@@ -42,12 +44,12 @@ export default function Sidebar() {
     },
     
   ];
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
   
   
   
-  }, [logout, router]);
+  // }, [logout, router]);
   const handleLogOut = async () => {
     try {
       const response = await logout(router);
@@ -66,24 +68,20 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
-        {menu.map(({ href, label, icon }) => {
-          const isActive = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors 
-                ${isActive ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-200'}
-              `}
-            >
-              <span className="flex-shrink-0">
-                {React.cloneElement(icon, { className: isActive ? 'text-blue-600' : 'text-gray-500' })}
-              </span>
-              <span className="truncate">{label}</span>
-            </Link>
-            
-          );
-        })}
+      {menu.map(({ href, label, icon }) => {
+  const isActive = pathname === href;
+  
+  return (
+    <Link key={href} href={href} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+      ${isActive ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-200'}
+    `}>
+      <span className="flex-shrink-0">
+        {React.cloneElement(icon, { className: isActive ? 'text-blue-600' : 'text-gray-500' })}
+      </span>
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+})}
         <button onClick={handleLogOut} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-200`}>
           Log Out
         </button>
