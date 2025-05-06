@@ -188,6 +188,14 @@ namespace backend.Controllers
 [HttpPost("create")]
 public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO createBookDTO, IFormFile imageFile)
 {
+    var existingBook = await _context.Books.FirstOrDefaultAsync(b => b.ISBN == createBookDTO.ISBN);
+    if (existingBook != null)
+    {
+        return BadRequest(new { Message = "A book with this ISBN already exists." });
+    }
+
+
+    
     var book = new Book
     {
         BookId = Guid.NewGuid(),

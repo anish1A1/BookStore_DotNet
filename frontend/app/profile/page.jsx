@@ -12,11 +12,19 @@ import {
   UserIcon,
   LogOutIcon,
 } from "lucide-react";
-
+import { toast } from "sonner";
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const router = useRouter();
 
+  const SignOut = async () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+    const stopTime = setTimeout(() => {
+      toast.success("Logged out successfully");
+      clearTimeout(stopTime);
+    }, 2000);
+  };
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
@@ -385,7 +393,7 @@ export default function DashboardPage() {
                   </button>
                 ))}
                 <button
-                  onClick={() => router.push("/")}
+                  onClick={() => SignOut()}
                   className="flex items-center w-full px-4 py-2 rounded text-left text-red-500 hover:bg-gray-100"
                 >
                   <LogOutIcon size={18} className="mr-3" />
