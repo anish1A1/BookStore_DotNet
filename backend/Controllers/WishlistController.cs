@@ -49,7 +49,8 @@ public class WishlistController : ControllerBase
                 GenreName = w.Book.GenreName,
                 FormatName = w.Book.FormatName,
                 Rating = w.Book.Rating,
-                TotalSales = w.Book.TotalSales
+                TotalSales = w.Book.TotalSales,
+                ImageUrl = w.Book.ImageUrl
             })
             .ToListAsync();
 

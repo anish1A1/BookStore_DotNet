@@ -11,25 +11,26 @@ export const AuthProvider = ({children}) => {
     const [errors, setError] = useState({});
     const [role, setRole] = useState(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            console.log('Token from localStorage:', token);
-            if (token) {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                await fetchUserData(token);
-            } else {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+        // useEffect(() => {
+        //     const fetchData = async () => {
+        //         const token = localStorage.getItem('token');
+        //         console.log('Token from localStorage:', token);
+        //         if (token) {
+        //             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        //             await fetchUserData(token);
+        //         } else {
+        //             setLoading(false);
+        //         }
+        //     };
+        //     fetchData();
+        // // eslint-disable-next-line react-hooks/exhaustive-deps
+        // }, []);
 
     const fetchUserData = async (token) => {
         try {
             const response = await axios.get('/auth/me');
             setUser(response.data);
-            checkUserRole(token); // Pass token without router here
+            // checkUserRole(token); // Pass token without router here
         } catch (error) {
             console.error("Error fetching user data:", error);
             localStorage.removeItem('token');
@@ -102,6 +103,9 @@ export const AuthProvider = ({children}) => {
         role,
         login,
         logout,
+        fetchUserData,
+        checkUserRole,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [user, loading, errors, role]);
 
     return (

@@ -137,7 +137,8 @@ namespace backend.Controllers
                 TotalSales = b.TotalSales,
                 IsAwardWinner = b.IsAwardWinner,
                 IsExclusive = b.IsExclusive,
-                ImageUrl = b.ImageUrl ?? ""
+                ImageUrl = b.ImageUrl ?? "",
+                IsOnSale = b.Discounts.Any(d => d.EndDate > DateTime.UtcNow)
             })
             .ToListAsync();
         return Ok(new
@@ -177,7 +178,11 @@ namespace backend.Controllers
                 TotalSales = b.TotalSales,
                 IsAwardWinner = b.IsAwardWinner,
                 IsExclusive = b.IsExclusive,
-                ImageUrl = b.ImageUrl ?? ""
+                ImageUrl = b.ImageUrl ?? "",
+                IsOnSale = b.IsOnSale,
+                DiscountedPrice = b.Discounts.Any() ? b.BookPrice * (1 - b.Discounts.OrderByDescending(d => d.StartDate).First().Percentage / 100) : b.BookPrice,
+                DiscountPercentage = b.Discounts.Any() ? b.Discounts.OrderByDescending(d => d.StartDate).First().Percentage : 0,
+                SaleEndDate = b.Discounts.Any() ? b.Discounts.OrderByDescending(d => d.StartDate).First().EndDate : null
             })
             .FirstOrDefaultAsync(b => b.BookId == id);
 

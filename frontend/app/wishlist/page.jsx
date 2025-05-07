@@ -8,18 +8,29 @@ import axios from "../../utils/axios";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { OrderContext } from "../../utils/order";
+import { AuthContext } from "../../utils/auth";
 
 
 
 export default function WishlistPage() {
   const {getAllWishList, AddToCart, removeFromWishList, wishlists, loading} = useContext(OrderContext);
+  const {user, fetchUserData} = useContext(AuthContext);
+  const router = useRouter();
 
-
+  useEffect(() => {
+      fetchUserData();
+    }, [user]);
+  
+    if (!user) {
+      router.push("/login");
+      toast.error("Please login first!");
+      return;
+    }
 
 
   useEffect(() => {
     getAllWishList();
-  },[]);
+  },[user]);
   const handleDelete = async (id) => {
     try {
       const response = await removeFromWishList(id);
@@ -92,13 +103,13 @@ export default function WishlistPage() {
               const total = (unit * 1).toFixed(2);
               console.log(b);
               return (
-                <tr key={b.bookId} className="border-b hover:bg-gray-50">
+                <tr key={b.bookId + b.bookTitle} className="border-b hover:bg-gray-50">
                   
                   <td className="p-2">
                     
-                    {b.imageUrl ? (
+                    {b?.imageUrl ? (
                       <img
-                        src={b.imageUrl}
+                        src={`http://localhost:5189${b.imageUrl}`}
                         alt={b.bookTitle}
                         className="w-16 h-20 object-cover rounded"
                       />

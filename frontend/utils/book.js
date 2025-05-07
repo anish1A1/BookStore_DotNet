@@ -10,7 +10,8 @@ export const BookProvider = ({children}) => {
     const [bookById, setBookById] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inventory, setInventory] = useState([]);
-
+    const [discount, setDiscount] = useState([]);
+    const [bookForDis, setBookForDis] = useState([]);
     const fetchBooks = async( filter = {}) => {
         try {
             const response = await axios.get('/book', { params: filter});
@@ -43,6 +44,7 @@ export const BookProvider = ({children}) => {
 
     const createBook = async (formData) => {
         const token = localStorage.getItem('token');
+        
         const data = new FormData();
 
         Object.keys(formData).forEach((key) => {
@@ -136,18 +138,78 @@ export const BookProvider = ({children}) => {
         }
     };
 
+
+    const createDiscount = async (data) => {
+        const token = localStorage.getItem('token');
+        Object.keys(data).forEach((key) => {
+            data.append(key, data[key]);
+        });
+
+        try {
+            const response = await axios.post('/discount/create', {data}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            setDiscount((prevDiscount) => [...prevDiscount, response.data]);
+            return {status: 'success', message: 'Discount created successfully'}
+        } catch (error) {
+            console.error('Error creating discount',error);
+            throw error?.response?.data?.Message;
+        }
+    };
+
+    const fetchallDiscount = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.get('/discount/', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            setDiscount(response.data);
+        } catch (error) {
+            console.error('Error fetching discount',error);
+            throw error?.response?.data?.Message;
+        }
+    };
+
+    const fetchBookToAddForDisc = () => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = axios.get('/book/', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            setBookForDis(response.data);
+            
+        } catch (error) {
+            const errorRes = error.response?.data?.Message || 'Error fetching books';
+            console.error('Error fetching the Books',errorRes);
+            throw errorRes;
+        }
+    }
+
+
+
     const value = useMemo(() => ({
         books,
         bookById,
         loading,
         inventory,
+        discount,
+        bookForDis,
+        fetchBookToAddForDisc,
         fetchBooks,
         fetchBooksById,
         createBook,
         updateBook,
         deleteBook,
-        updateBookinventory
-    }), [books, bookById, loading, inventory]);
+        updateBookinventory,
+        createDiscount,
+        fetchallDiscount,
+    }), [books, bookById, discount, loading, inventory, bookForDis]);
 
     return (
         <BookContext.Provider value={value}>

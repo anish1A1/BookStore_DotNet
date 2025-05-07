@@ -4,6 +4,7 @@ import axios from "axios";
 import Hero from "./components/hero";
 import { ChevronRightIcon, StarIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Category cards
 const categories = [
@@ -131,7 +132,7 @@ const featuredPicks = [
 
 const MainHomePage =() =>{
 
-
+    const router = useRouter();
   function BookCard({ book, size = "w-48" }) {
     return (
       <div

@@ -23,4 +23,7 @@ public class BookDTO
     public string ImageUrl { get; set; } = string.Empty;
     public bool IsExclusive { get; set; } = false;
     public bool IsAwardWinner { get; set; } = false;
+    public bool IsOnSale { get; set; }
+    public decimal? DiscountPercentage { get; set; }
+    public DateTime? SaleEndDate { get; set; }
 }

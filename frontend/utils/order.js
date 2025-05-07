@@ -238,6 +238,7 @@ export const OrderProvider =({children}) => {
         getAllWishList,
         removeFromWishList,
         placeOrder,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [orders, cartItems, wishlists, orderById, loading]);
 
     return (

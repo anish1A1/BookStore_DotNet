@@ -1,8 +1,9 @@
 // app/dashboard/page.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
+import axios from "../../utils/axios";
 import { useRouter } from "next/navigation";
 import {
   BookmarkIcon,
@@ -13,10 +14,11 @@ import {
   LogOutIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AuthContext } from "../../utils/auth";
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const router = useRouter();
-
+  const {fetchUserData, user} = useContext(AuthContext);
   const SignOut = async () => {
     localStorage.removeItem("token");
     router.push("/login");
@@ -25,6 +27,24 @@ export default function DashboardPage() {
       clearTimeout(stopTime);
     }, 2000);
   };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [user]);
+
+  if (!user) {
+    router.push("/login");
+    toast.error("Please login first!");
+    return;
+  }
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (!token) {
+  //     router.push("/login");
+  //   }
+   
+  // }, [router]);
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
@@ -37,7 +57,7 @@ export default function DashboardPage() {
                   AJ
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">Anish Jaiswal </h3>
+                  <h3 className="text-xl font-bold">{user?.userName} </h3>
                   <p className="text-gray-600">Member since June 2022</p>
                   <p className="text-[#E3B23C] font-bold">Gold Member</p>
                 </div>
@@ -46,11 +66,11 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p>allozpats32@gmail.com</p>
+                    <p>{user?.userEmail}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Phone</p>
-                    <p>9800000000</p>
+                    <p>{user?.phoneNumber ? user?.phoneNumber : 9800000000}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Default Store</p>
@@ -66,25 +86,7 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-4">Membership Progress</h3>
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Progress to Platinum</span>
-                  <span>75%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-[#E3B23C] h-2.5 rounded-full"
-                    style={{ width: "75%" }}
-                  />
-                </div>
-              </div>
-              <p className="text-sm">
-                You have purchased 15 books this year. Buy 5 more to reach
-                Platinum status and earn 15% off all purchases.
-              </p>
-            </div>
+            
           </div>
         );
 
@@ -366,7 +368,7 @@ export default function DashboardPage() {
                  AJ
                   </div>
                   <div>
-                    <h3 className="font-bold">Anish Jaiswal </h3>
+                    <h3 className="font-bold">{user?.userName} </h3>
                     <p className="text-sm text-[#E3B23C]">Gold Member</p>
                   </div>
                 </div>

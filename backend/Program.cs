@@ -59,7 +59,7 @@ builder.Services.AddAuthorization(options => {
     options.AddPolicy("RequireStaffRole", policy => policy.RequireRole("Staff"));
 });
 
-
+builder.Services.AddHostedService<DiscountCleanupService>();
 builder.Services.AddScoped<TokenServices>();
 builder.Services.AddScoped<EmailService>();
 

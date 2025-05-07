@@ -151,7 +151,13 @@ export default function BookDetailPage() {
         {/* Main */}
         <div className="flex flex-col md:flex-row gap-8 mb-12">
           {/* Cover */}
-          <div className="md:w-1/3">
+          <div className="md:w-1/3 relative">
+          {bookById.isOnSale && (
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+              On Sale
+          </span>
+            )}
+
             {bookById.imageUrl ? (
               <img
                 src={`http://localhost:5189${bookById.imageUrl}`}
@@ -164,6 +170,7 @@ export default function BookDetailPage() {
               </div>
             )}
           </div>
+
 
           {/* Details */}
           <div className="md:w-2/3 space-y-4">
@@ -193,18 +200,37 @@ export default function BookDetailPage() {
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-baseline space-x-2">
-                <span className="text-2xl font-bold">
-                  ${(bookById.onSale ? bookById.salePrice : bookById.bookPrice)?.toFixed(2)}
-                </span>
-              </div>
-              <p className="text-green-600">
-                In Stock — Ships within 24 hours
-              </p>
+            <div className="flex items-baseline space-x-2">
+        {bookById.isOnSale ? (
+          <>
+                  <span className="text-xl font-bold text-red-600">
+                    <span className="text-gray-500 line-through">${bookById.bookPrice?.toFixed(2)}</span>
+                    &nbsp; ${bookById.discountedPrice?.toFixed(2)}
+                  </span>
+                  {/* ✅ Show discount percentage */}
+                  <span className="text-green-600 text-sm font-medium">
+                    ({bookById.discountPercentage}% Off)
+                  </span>
+                </>
+              ) : (
+                <span className="text-2xl font-bold">${bookById.bookPrice?.toFixed(2)}</span>
+              )}
             </div>
+                  <p className="text-green-600">
+              {bookById?.stockCount > 0 ? "In Stock — Ships within 24 hours" : "Out of Stock"}
+            </p>
+
+            {bookById.isOnSale && (
+              <p className="text-sm text-gray-500">Sale Ends: {new Date(bookById.saleEndDate).toLocaleDateString()}</p>
+            )}
+          </div>
+
+
 
             <div className="space-y-4">
               {/* Formats */}
+              <div className="flex items-center space-x-4 gap-4">
+
               <div>
                 <p className="text-sm mb-2">Format</p>
                 <div className="flex flex-wrap gap-2">
@@ -213,7 +239,15 @@ export default function BookDetailPage() {
                   </span>
                 </div>
               </div>
-
+              <div>
+                <p className="text-sm mb-2">Genere</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                    {bookById?.genreName}
+                  </span>
+                </div>
+              </div>
+              </div>
               {/* Quantity */}
               <div className="flex items-center space-x-4">
                 <p className="text-sm">Quantity</p>

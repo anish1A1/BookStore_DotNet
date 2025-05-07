@@ -215,53 +215,7 @@ export default function AdminDashboardPage() {
             <div className="text-sm text-green-600 mt-1">↑ 8% this week</div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-2/3 border border-gray-300 rounded-md p-4 bg-white">
-            <h2 className="font-bold text-lg mb-4">Sales Overview</h2>
-            <img
-              src="https://assets.mailshake.com/wp-content/uploads/2022/08/11110919/sales-performance-dashboard.png"
-              alt="Sales Overview Chart"
-              className="w-full h-64 object-cover rounded mb-4"
-            />
-            <div className="flex justify-center gap-2">
-              {["Today", "Week", "Month", "Quarter"].map((label, idx) => (
-                <button
-                  key={label}
-                  className={`px-3 py-1 rounded ${idx === 0 ? "bg-gray-800 text-white" : "border border-gray-300"}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="lg:w-1/3 border border-gray-300 rounded-md p-4 bg-white">
-            <h2 className="font-bold text-lg mb-4">Real-time Sales Feed</h2>
-            <div className="space-y-3 h-64 overflow-y-auto">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex gap-3 p-2 border-b border-gray-200 last:border-0">
-                  <img
-                    src={`https://picsum.photos/seed/book${i}/40/40`}
-                    alt="book cover"
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="text-sm">
-                      <strong>{(i % 3) + 1} copies</strong> of <strong>Book Title {i + 1}</strong> sold
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {i < 2 ? "Just now" : `${i * 5} minutes ago`}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 text-center">
-              <button className="text-sm text-gray-600 hover:underline">
-                View All Activity
-              </button>
-            </div>
-          </div>
-        </div>
+        
         <UserManagement />
         <div className="mt-6 border border-gray-300 rounded-md p-4 bg-white">
           <h2 className="font-bold text-lg mb-4">Quick Actions</h2>

@@ -275,34 +275,53 @@ export default function CataloguePage() {
 
             {/* Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8 hover:cursor-auto">
-              {loading ? (
-                <p>Loading...</p>
-              ) : books.length > 0 ? (
-                books.map((book) => (
-                  <button
-                    key={book.bookId}
-                    onClick={() => router.push(`/BookDetail/${book.bookId}`)}
-                    className="block bg-white rounded-lg shadow hover:shadow-lg transition p-2"
-                  >
-                    {book.imageUrl ? (
-                      <img src={`http://localhost:5189${book.imageUrl}`}
-                        alt={book.bookTitle}
-                        className="w-full h-48 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-full h-48 flex items-center justify-center bg-gray-200 rounded">
-                        <span className="text-gray-600">No Image Available</span>
-                      </div>
-                    )}
+            {loading ? (
+              <p>Loading...</p>
+            ) : books.length > 0 ? (
+              books.map((book) => (
+                <button
+                  key={book.bookId}
+                  onClick={() => router.push(`/BookDetail/${book.bookId}`)}
+                  className="relative block bg-white rounded-lg shadow hover:shadow-lg transition p-2"
+                >
+                  {/* ✅ Display "On Sale" badge when book is on sale */}
+                  {book.isOnSale && (
+                    <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                      On Sale
+                    </span>
+                  )}
 
-                    <h2 className="mt-2 font-semibold">{book.bookTitle}</h2>
-                    <p className="text-sm text-gray-500">{book.authorName}</p>
-                    <p className="mt-1 font-bold">${book.bookPrice?.toFixed(2)}</p>
-                  </button>
-                ))
-              ) : (
-                <p>No books found.</p>
-              )}
+                  {/* ✅ Book Image */}
+                  {book.imageUrl ? (
+                    <img
+                      src={`http://localhost:5189${book.imageUrl}`}
+                      alt={book.bookTitle}
+                      className="w-full h-48 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-gray-200 rounded">
+                      <span className="text-gray-600">No Image Available</span>
+                    </div>
+                  )}
+
+                  {/* ✅ Book Title & Author */}
+                  <h2 className="mt-2 font-semibold">{book.bookTitle}</h2>
+                  <p className="text-sm text-gray-500">{book.authorName}</p>
+
+                  {/* ✅ Display price with strike-through and discount price */}
+                  {book.isOnSale ? (
+                    <p className="mt-1 text-lg font-bold text-red-600">
+                      <span className="text-gray-500 line-through">${book.bookPrice?.toFixed(2)}</span>
+                      &nbsp; ${book.discountedPrice?.toFixed(2)}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-lg font-bold">${book.bookPrice?.toFixed(2)}</p>
+                  )}
+                </button>
+              ))
+            ) : (
+              <p>No books found.</p>
+            )}
             </div>
 
             {/* Pagination */}

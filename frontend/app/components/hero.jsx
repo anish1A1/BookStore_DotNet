@@ -17,7 +17,7 @@ export default function Hero() {
           discerning reader.
         </p>
         <Link
-          href="/collection"
+          href="/catalog"
           className="inline-block bg-[#F1C40F] hover:bg-yellow-500 text-white font-semibold px-6 py-3 rounded-md"
         >
           Browse Collection

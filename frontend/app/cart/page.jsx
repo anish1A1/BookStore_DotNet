@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { MinusIcon, PlusIcon, XIcon } from 'lucide-react'
 import { OrderContext } from '../../utils/order'
 import { toast } from 'sonner'
+import { AuthContext } from '../../utils/auth'
+import { useRouter } from 'next/navigation'
 const initialcartItem = [
   {
     id: 1,
@@ -28,22 +30,38 @@ const initialcartItem = [
 ]
 
 export default function CartPage() {
+  const router = useRouter();
   const {removeFromCart, updateCart, fetchCart,  cartItems,loading, fetchOrders, orders } = useContext(OrderContext);
   const [cartItem, setcartItem] = useState(initialcartItem)
-  const [countQuantity, setCountQuantity] = useState(0);
+
+  const {user, fetchUserData} = useContext(AuthContext);
 
   useEffect(() => {
-    fetchCart()
+      fetchUserData();
+    }, [user]);
+  
+    if (!user) {
+      router.push("/login");
+      toast.error("Please login first!");
+      return;
+    }
+
+  useEffect(() => {
+
+      fetchCart()
     // fetchOrders()
   },[]);
   
   const [quantity, setQuantity] = useState([]);
   
   useEffect(() => {
-    const initialQuantities = {};
-    cartItem?.forEach((item) => {
-      initialQuantities[item.id] = item.quantity
-    })
+    if(user) {
+      const initialQuantities = {};
+      cartItem?.forEach((item) => {
+        initialQuantities[item.id] = item.quantity
+      })
+
+    }
   },[cartItem]);
 
   // const handleQuantityChange = (id, qty) => setQuantity({ ...quantity, [id]: qty });
