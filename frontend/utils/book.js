@@ -22,7 +22,7 @@ export const BookProvider = ({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error fetching books';
             
             console.error('Error fetching the Books',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -36,7 +36,7 @@ export const BookProvider = ({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error fetching books';
             
             console.error('Error fetching the Books by Id',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }

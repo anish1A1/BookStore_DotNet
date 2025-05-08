@@ -48,8 +48,8 @@ export const OrderProvider =({children}) => {
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error adding book to cart';
             
-            console.error('Error adding book to cart',errorMessage);
-            throw errorMessage.response.data;
+            // console.error('Error adding book to cart',errorMessage);
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -72,7 +72,7 @@ export const OrderProvider =({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error updating book quantity';
             
             console.error('Error updating book quantity',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -94,7 +94,7 @@ export const OrderProvider =({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error removing book from cart';
             
             console.error('Error removing book from cart',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -116,7 +116,7 @@ export const OrderProvider =({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error fetching orders';
             
             console.error('Error fetching the Orders',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -135,7 +135,7 @@ export const OrderProvider =({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error fetching orders';
             
             console.error('Error fetching the Orders by Id',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -155,7 +155,7 @@ export const OrderProvider =({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error adding book to wishlist';
             
             console.error('Error adding book to wishlist',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }
@@ -175,7 +175,7 @@ export const OrderProvider =({children}) => {
             const errorMessage = error.response?.data?.Message || 'Error fetching wishlist';
             
             console.error('Error fetching the wishlist',errorMessage);
-            throw errorMessage.response.data;
+            throw error?.response?.data;
         } finally {
             setLoading(false);
         }

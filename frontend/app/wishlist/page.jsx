@@ -17,20 +17,12 @@ export default function WishlistPage() {
   const {user, fetchUserData} = useContext(AuthContext);
   const router = useRouter();
 
-  useEffect(() => {
-      fetchUserData();
-    }, [user]);
-  
-    if (!user) {
-      router.push("/login");
-      toast.error("Please login first!");
-      return;
-    }
+ 
 
 
   useEffect(() => {
     getAllWishList();
-  },[user]);
+  },[]);
   const handleDelete = async (id) => {
     try {
       const response = await removeFromWishList(id);
@@ -38,16 +30,17 @@ export default function WishlistPage() {
       toast.success(response?.message || "Deleted from wishlist successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete item");
-      console.log(error);
+      console.log(error?.Message);
     }
   }
 
   const handleAddToCart =async  (id) => {
     try {
-      const response = await AddToCart(id);
+      const response = await AddToCart(id , 1);
       toast.success(response?.message || "Added to cart successfully");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add item");
+      toast.error(error?.message || "Failed to add item");
+      // console.error("Add to Cart Error:", error);
     }
   }
 
@@ -145,7 +138,7 @@ export default function WishlistPage() {
                   <td className="p-3">
                     <span
                       className={
-                        b.libraryAvailable === true
+                        b?.libraryAvailable === true
                           ? "text-green-600"
                           : "text-red-500"
                       }
