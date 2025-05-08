@@ -1,71 +1,70 @@
-// app/notices/page.jsx
+"use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import axios from "../../utils/axios";
 
-const notices = [
-  {
-    id: 1,
-    title: "Free delivery on orders above Rs. 1000!",
-    body: "Have your books delivered free when you spend over Rs. 1000. Valid until May 31, 2025.",
-    date: "2025-05-01",
-    link: "/?filter=delivery",
-  },
-  {
-    id: 2,
-    title: "Summer Book Sale — up to 50% off!",
-    body: "Thousands of titles on sale. Don’t miss out on the best deals of the year.",
-    date: "2025-04-25",
-    link: "/collections/summer-sale",
-  },
-  {
-    id: 3,
-    title: "New arrivals: Bestsellers from 2024!",
-    body: "Catch up on the hottest reads from last year—now in stock.",
-    date: "2025-04-20",
-    link: "/new-arrivals",
-  },
-  // …add more past notices here…
-];
+export default function NoticePage() {
+  const [notices, setNotices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-export default function NoticesPage() {
-  // sort newest → oldest
-  const sorted = [...notices].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  );
+  useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        const response = await axios.get("/announcements/public");
+        setNotices(response.data);
+      } catch (err) {
+        setError("Failed to load notices.");
+        console.error("Error fetching notices:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotices();
+  }, []);
+
+  if (loading) return <div className="p-6">Loading notices...</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
-    <section className="max-w-screen-lg mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">All Site Notices</h1>
-      <p className="mb-6 text-gray-600">
-        Browse our past and current announcements.
-      </p>
-
-      <ul className="space-y-6">
-        {sorted.map(({ id, title, body, date, link }) => (
-          <li
-            key={id}
-            className="relative border rounded-lg p-6 shadow-sm hover:shadow-md transition"
-          >
-            <time className="block text-xs text-gray-500">
-              {new Date(date).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </time>
-            <h2 className="mt-1 text-lg font-semibold">{title}</h2>
-            <p className="mt-2 text-gray-700">{body}</p>
-            {link && (
-              <Link
-                href={link}
-                className="inline-block mt-4 text-yellow-600 hover:underline"
-              >
-                Learn more →
-              </Link>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="min-h-screen pt-20 pb-10 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6 border-b pb-2">Notices</h1>
+          {notices.length === 0 ? (
+            <p className="text-gray-500 text-center py-10">No notices available at the moment.</p>
+          ) : (
+            <div className="grid gap-6">
+              {notices.map((notice) => (
+                <div
+                  key={notice.announcementId}
+                  className="bg-white p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h2 className="text-xl font-semibold text-gray-800">{notice.title}</h2>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        notice.status === "Active"
+                          ? "bg-green-100 text-green-800"
+                          : notice.status === "Scheduled"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-200 text-gray-800"
+                      }`}
+                    >
+                      {notice.status}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-3">{notice.message}</p>
+                  <p className="text-sm text-gray-500">
+                    Valid: {new Date(notice.startDate).toLocaleDateString()} -{" "}
+                    {new Date(notice.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

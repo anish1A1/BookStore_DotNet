@@ -1,12 +1,11 @@
-// app/layout.jsx
 import './globals.css'
 import Navbar from './components/navbar'
-// import Hero from './components/hero'
 import Footer from './components/footer'
 import { AuthProvider } from '../utils/auth'
 import { BookProvider } from '../utils/book'
 import { OrderProvider } from '../utils/order'
 import { Toaster } from "sonner";
+import Topbar from './components/topbar'
 
 export default function RootLayout({ children }) {
   return (
@@ -15,15 +14,13 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <BookProvider>
             <OrderProvider>
-
-        <Navbar />
-        <main className="flex-grow">
-        <Toaster position="top-center" />
-        {children}
-        </main>
-        <Footer />
-
-
+            <Topbar />
+            <Navbar />
+            <main className="flex-grow">
+            <Toaster position="top-center" />
+            {children}
+            </main>
+            <Footer />
             </OrderProvider>
           </BookProvider>
         </AuthProvider>
