@@ -10,6 +10,7 @@ import {
   BookOpenIcon,
   PercentIcon,
   BellIcon,
+  LogOutIcon,
 } from "lucide-react";
 import { AuthContext } from "../../../utils/auth";
 import { toast } from "sonner";
@@ -72,18 +73,22 @@ export default function Sidebar() {
   const isActive = pathname === href;
   
   return (
-    <Link key={href} href={href} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-      ${isActive ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-200'}
-    `}>
-      <span className="flex-shrink-0">
-        {React.cloneElement(icon, { className: isActive ? 'text-blue-600' : 'text-gray-500' })}
-      </span>
-      <span className="truncate">{label}</span>
-    </Link>
-  );
-})}
-        <button onClick={handleLogOut} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-200`}>
-          Log Out
+        <Link key={href} href={href} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+          ${isActive ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-200'}
+        `}>
+          <span className="flex-shrink-0">
+            {React.cloneElement(icon, { className: isActive ? 'text-blue-600' : 'text-gray-500' })}
+          </span>
+          <span className="truncate">{label}</span>
+        </Link>
+          );
+        })}
+        <button
+          onClick={handleLogOut}
+          className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-gray-200 rounded-lg"
+        >
+          <LogOutIcon size={20} className="text-red-600" />
+          <span>Sign Out</span>
         </button>
       </nav>
         

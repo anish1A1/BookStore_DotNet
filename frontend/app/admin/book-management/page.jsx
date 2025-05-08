@@ -1,23 +1,22 @@
-// app/admin/book-management/page.jsx
 "use client";
+
 import { BookContext } from "../../../utils/book";
 import { useState, useMemo, useEffect, useContext } from "react";
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "lucide-react";
 import AddBook from "../components/AddBook";
 import { toast } from "sonner";
 
-
 export default function BookManagementPage() {
-  const {fetchBooks, createBook, updateBook, deleteBook, updateBookinventory, books, loading, inventory} = useContext(BookContext);
-  
+  const { fetchBooks, createBook, updateBook, deleteBook, updateBookinventory, books, loading } = useContext(BookContext);
+
   useEffect(() => {
     try {
       const getData = async () => {
         await fetchBooks();
-      }
+      };
       getData();
     } catch (error) {
-      console.error('Error fetching the Books',error);
+      console.error("Error fetching the Books", error);
     }
   }, []);
 
@@ -26,32 +25,31 @@ export default function BookManagementPage() {
   const [editingId, setEditingId] = useState(null);
   const [showDeleteId, setShowDeleteId] = useState(null);
   const [formData, setFormData] = useState({
-    ISBN : "",
+    ISBN: "",
     BookTitle: "",
     BookDescription: "",
     PublicationDate: "",
-    BookLanguage : "",
-    BookPrice : 0,
-    InitialStockCount : 0,
+    BookLanguage: "",
+    BookPrice: 0,
+    InitialStockCount: 0,
     LibraryAvailable: true,
     AuthorName: "",
     PublisherName: "",
     GenreName: "Fiction",
     FormatName: "Paperback",
     IsExclusive: false,
-    IsAwardWinner: false
+    IsAwardWinner: false,
   });
 
   const filteredBooks = useMemo(() => {
     if (!Array.isArray(books)) return [];
     return books.filter(
       (b) =>
-        b.BookTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.AuthorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.ISBN?.includes(searchTerm)
+        b.bookTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.authorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.isbn?.includes(searchTerm)
     );
   }, [books, searchTerm]);
-  
 
   function openAdd() {
     setEditingId(null);
@@ -65,75 +63,74 @@ export default function BookManagementPage() {
       InitialStockCount: 0,
       LibraryAvailable: true,
       AuthorName: "",
-      PublisherName: "0",
+      PublisherName: "",
       GenreName: "Fiction",
       FormatName: "Paperback",
       IsExclusive: false,
-      IsAwardWinner: false
+      IsAwardWinner: false,
     });
     setShowForm(true);
   }
-  
+
   function openEdit(book) {
-    setEditingId(book.id);
+    setEditingId(book.bookId);
     setFormData({
-      ISBN: book.ISBN,
-      BookTitle: book.BookTitle,
-      BookDescription: book.BookDescription,
-      PublicationDate: book.PublicationDate,
-      BookLanguage: book.BookLanguage,
-      BookPrice: book.BookPrice,
-      InitialStockCount: book.InitialStockCount,
-      LibraryAvailable: book.LibraryAvailable,
-      AuthorName: book.AuthorName,
-      PublisherName: book.PublisherName,
-      GenreName: book.GenreName,
-      FormatName: book.FormatName,
-      IsExclusive: book.IsExclusive,
-      IsAwardWinner: book.IsAwardWinner
+      ISBN: book.isbn,
+      BookTitle: book.bookTitle,
+      BookDescription: book.bookDescription,
+      PublicationDate: book.publicationDate,
+      BookLanguage: book.bookLanguage,
+      BookPrice: book.bookPrice,
+      InitialStockCount: book.stockCount,
+      LibraryAvailable: book.libraryAvailable,
+      AuthorName: book.authorName,
+      PublisherName: book.publisherName,
+      GenreName: book.genreName,
+      FormatName: book.formatName,
+      IsExclusive: book.isExclusive,
+      IsAwardWinner: book.isAwardWinner,
     });
     setShowForm(true);
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const bookData = { ...formData };
-  
+
     try {
       if (editingId) {
         await updateBook(editingId, bookData);
       } else {
         await createBook(bookData);
-        // await fetchBooks();
       }
-      
-      // await fetchBooks(); // Refresh book list
+      await fetchBooks(); // Refresh book list
       setShowForm(false);
+      toast.success(editingId ? "Book updated successfully" : "Book added successfully");
     } catch (error) {
       console.error("Error saving book", error);
+      toast.error("Failed to save book");
     }
   };
 
   function confirmDelete(id) {
-    setShowDeleteId(id); 
+    setShowDeleteId(id);
   }
 
-  
   const handleDelete = async () => {
     if (!showDeleteId) {
       toast.error("No book ID provided for deletion.");
       return;
     }
-  
+
     try {
       const response = await deleteBook(showDeleteId);
       if (!response) {
         throw new Error("Failed to delete book: No response from server");
       }
-  
+
       setShowDeleteId(null);
-      toast.message(response.message || "Deleted successfully");
+      toast.success(response.message || "Deleted successfully");
       await fetchBooks(); // Refresh book list
     } catch (error) {
       console.error("Error deleting book", error);
@@ -147,132 +144,136 @@ export default function BookManagementPage() {
       await fetchBooks(); // Refresh books after inventory update
     } catch (error) {
       console.error("Error updating inventory", error);
+      toast.error("Failed to update inventory");
     }
   };
 
-
   return (
     <div className="bg-gray-100 min-h-screen p-6">
-  <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-300 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Book Management</h1>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-md"
+          >
+            <PlusIcon size={16} />
+            <span>Add New Book</span>
+          </button>
+        </div>
 
-    {/* Header */}
-    <div className="bg-white p-6 rounded-lg shadow border border-gray-300 flex justify-between items-center">
-      <h1 className="text-2xl font-bold">Book Management</h1>
-      <button
-        onClick={openAdd}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-md"
-      >
-        <PlusIcon size={16} />
-        <span>Add New Book</span>
-      </button>
-    </div>
+        {/* Search */}
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-300 flex gap-4">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search by title, author, or ISBN..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 pl-10 border border-gray-300 rounded"
+            />
+            <SearchIcon className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          </div>
+        </div>
 
-    {/* Search */}
-    <div className="bg-white p-6 rounded-lg shadow border border-gray-300 flex gap-4">
-      <div className="relative flex-1">
-        <input
-          type="text"
-          placeholder="Search by title, author, or ISBN..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 pl-10 border border-gray-300 rounded"
-        />
-        <SearchIcon className="absolute left-3 top-2.5 text-gray-400" size={18} />
+        {/* Table */}
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-300 overflow-x-auto">
+          {/* Loading State */}
+          {loading && (
+            <div className="flex justify-center items-center py-10">
+              <span className="text-gray-600 text-lg font-medium">Loading books...</span>
+            </div>
+          )}
+
+          {/* No Books Found */}
+          {!loading && books.length === 0 && (
+            <div className="text-center text-gray-500 py-10">
+              <p className="text-lg font-medium">No books found.</p>
+            </div>
+          )}
+
+          {/* Book Table */}
+          {books.length > 0 && !loading && (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  {["Cover", "Title", "Author", "ISBN", "Category", "Price", "Stock", "Actions"].map((h) => (
+                    <th key={h} className="p-3 border border-gray-300 text-left">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBooks.map((b) => (
+                  <tr key={`${b?.bookId}-${b?.isbn}`} className="hover:bg-gray-50">
+                    <td className="p-3 border border-gray-300">
+                      {b?.imageUrl ? (
+                        <img
+                          src={`http://localhost:5189${b.imageUrl}`}
+                          alt={b?.bookTitle}
+                          className="w-10 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <span className="text-gray-500">No Image</span>
+                      )}
+                    </td>
+                    <td className="p-3 border border-gray-300">{b?.bookTitle}</td>
+                    <td className="p-3 border border-gray-300">{b?.authorName}</td>
+                    <td className="p-3 border border-gray-300">{b?.isbn}</td>
+                    <td className="p-3 border border-gray-300">{b?.genreName}</td>
+                    <td className="p-3 border border-gray-300">${b?.bookPrice}</td>
+                    <td className="p-3 border border-gray-300">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            b?.stockCount === 0
+                              ? "bg-red-500"
+                              : b.stockCount < 10
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                          }`}
+                        ></div>
+                        <span>{b?.stockCount}</span>
+                      </div>
+                    </td>
+                    <td className="p-3 border border-gray-300">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEdit(b)}
+                          className="p-1 bg-blue-100 text-blue-700 rounded"
+                        >
+                          <EditIcon size={16} />
+                        </button>
+                        <button
+                          onClick={() => confirmDelete(b?.bookId)}
+                          className="p-1 bg-red-100 text-red-700 rounded"
+                        >
+                          <TrashIcon size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Footer info */}
+        <div className="text-sm text-gray-500">
+          Showing {filteredBooks.length} of {books.length} books
+        </div>
       </div>
-    </div>
-
-    {/* Table */}
-    <div className="bg-white p-6 rounded-lg shadow border border-gray-300 overflow-x-auto">
-      
-      {/* ✅ Loading State */}
-      {loading && (
-        <div className="flex justify-center items-center py-10">
-          <span className="text-gray-600 text-lg font-medium">Loading books...</span>
-        </div>
-      )}
-
-      
-
-      {/* ✅ No Books Found */}
-      {!loading && books.length === 0 && (
-        <div className="text-center text-gray-500 py-10">
-          <p className="text-lg font-medium">No books found.</p>
-        </div>
-      )}
-
-      {/* Book Table */}
-      {books.length > 0 && !loading && (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              {["Cover", "Title", "Author", "ISBN", "Category", "Price", "Stock", "Actions"].map((h) => (
-                <th key={h} className="p-3 border border-gray-300 text-left">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {books.map((b) => (
-              <tr key={b?.bookId + b?.isbn} className="hover:bg-gray-50">
-                <td className="p-3 border border-gray-300">
-                  {b?.imageUrl ? (
-                    <img src={`http://localhost:5189${b.imageUrl}`} alt={b?.BookTitle} className="w-10 h-12 object-cover rounded" />
-                  ) : (
-                    <span className="text-gray-500">No Image</span>
-                  )}
-                </td>
-                <td className="p-3 border border-gray-300">{b?.bookTitle}</td>
-                <td className="p-3 border border-gray-300">{b?.authorName}</td>
-                <td className="p-3 border border-gray-300">{b?.isbn}</td>
-                <td className="p-3 border border-gray-300">{b?.genreName}</td>
-                <td className="p-3 border border-gray-300">${b?.bookPrice}</td>
-                <td className="p-3 border border-gray-300">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-3 h-3 rounded-full ${b?.InitialStockCount === 0
-                        ? "bg-red-500"
-                        : b.InitialStockCount < 10
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                      }`}
-                    ></div>
-                    <span>{b?.stockCount}</span>
-                  </div>
-                </td>
-                <td className="p-3 border border-gray-300">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openEdit(b?.bookId)}
-                      className="p-1 bg-blue-100 text-blue-700 rounded"
-                    >
-                      <EditIcon size={16} />
-                    </button>
-                    <button
-                      onClick={() => confirmDelete(b?.bookId)}
-                      className="p-1 bg-red-100 text-red-700 rounded"
-                    >
-                      <TrashIcon size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-
-    {/* Footer info */}
-    <div className="text-sm text-gray-500">
-      Showing {filteredBooks.length} of {books.length} books
-    </div>
-  </div>
 
       {/* Add/Edit Modal */}
       {showForm && (
         <AddBook
-        setShowForm={setShowForm}
-      />
-      
+          setShowForm={setShowForm}
+          formData={formData}
+          setFormData={setFormData}
+          handleSubmit={handleSubmit}
+          editingId={editingId}
+        />
       )}
 
       {/* Delete Confirmation */}

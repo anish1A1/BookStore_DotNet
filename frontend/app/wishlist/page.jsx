@@ -1,66 +1,62 @@
-// app/wishlist/page.jsx
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import Link from "next/link";
-import { HeartIcon, ShoppingCartIcon, Delete } from "lucide-react";
-import axios from "../../utils/axios";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { HeartIcon, ShoppingCartIcon } from "lucide-react";
 import { OrderContext } from "../../utils/order";
 import { AuthContext } from "../../utils/auth";
-
-
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function WishlistPage() {
-  const {getAllWishList, AddToCart, removeFromWishList, wishlists, loading} = useContext(OrderContext);
-  const {user, fetchUserData} = useContext(AuthContext);
+  const { getAllWishList, AddToCart, removeFromWishList, wishlists, loading } = useContext(OrderContext);
+  const { user, fetchUserData } = useContext(AuthContext);
   const router = useRouter();
 
- 
-
-
   useEffect(() => {
-    getAllWishList();
-  },[]);
-  const handleDelete = async (id) => {
+    fetchUserData();
+    if (!user) {
+      router.push("/login");
+      toast.error("Please login first!");
+    } else {
+      getAllWishList();
+    }
+  }, [user, router]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center py-20">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const handleDelete = async (bookId) => {
     try {
-      const response = await removeFromWishList(id);
+      const response = await removeFromWishList(bookId);
       getAllWishList();
       toast.success(response?.message || "Deleted from wishlist successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete item");
-      console.log(error?.Message);
     }
-  }
+  };
 
-  const handleAddToCart =async  (id) => {
+  const handleAddToCart = async (bookId) => {
     try {
-      const response = await AddToCart(id , 1);
+      const response = await AddToCart(bookId, 1);
       toast.success(response?.message || "Added to cart successfully");
     } catch (error) {
       toast.error(error?.message || "Failed to add item");
-      // console.error("Add to Cart Error:", error);
     }
-  }
-
-
-  if (loading) {
-    <div className="min-h-screen flex items-center justify-center py-20"> 
-    Loading...
-    </div>
-  }
-
-  
+  };
 
   return (
     <div className="flex flex-col flex-1 bg-gray-50">
-      {/* Hero header */}
       <div
         className="h-64 bg-cover bg-center relative"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1350&q=80')",
+            "url('https://cdn.prod.website-files.com/605826c62e8de87de744596e/6316cc066dd19a6c19aada38_Aug%20Orders%20Wishlist%20Page-%20Case%20Studies.jpg')",
         }}
       >
         <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white">
@@ -68,13 +64,10 @@ export default function WishlistPage() {
           <p className="mt-2">Save the books you love for later.</p>
         </div>
       </div>
-
-      {/* Content */}
       <div className="container mx-auto px-4 pt-6 pb-4 flex-1">
         <table className="min-w-full bg-white rounded-lg shadow overflow-hidden">
           <thead className="bg-gray-100">
             <tr>
-              
               <th className="p-3 text-left">Cover</th>
               <th className="p-3 text-left">Book Title</th>
               <th className="p-3 text-left">Price</th>
@@ -91,15 +84,12 @@ export default function WishlistPage() {
                 </td>
               </tr>
             )}
-            {wishlists.length> 0 && wishlists.map((b) => {
+            {wishlists.map((b) => {
               const unit = b.onSale ? b.salePrice : b?.bookPrice;
               const total = (unit * 1).toFixed(2);
-              console.log(b);
               return (
                 <tr key={b.bookId + b.bookTitle} className="border-b hover:bg-gray-50">
-                  
                   <td className="p-2">
-                    
                     {b?.imageUrl ? (
                       <img
                         src={`http://localhost:5189${b.imageUrl}`}
@@ -113,40 +103,22 @@ export default function WishlistPage() {
                     )}
                   </td>
                   <td className="p-3">{b.bookTitle}</td>
-                  <td className="p-3 text-gray-800 font-semibold">
-                    ${total}
-                  </td>
+                  <td className="p-3 text-gray-800 font-semibold">${total}</td>
                   <td className="p-2 text-center">
                     <div className="inline-flex items-center border rounded overflow-hidden">
                       1
-                      {/* <button
-                        onClick={() => updateQty(b.bookId, -1)}
-                        className="px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
-                        disabled={b.qty <= 1}
-                      >
-                        −
-                      </button>
-                      <span className="px-3">{1}</span>
-                      <button
-                        onClick={() => updateQty(b.id, +1)}
-                        className="px-2 py-1 hover:bg-gray-100"
-                      >
-                        +
-                      </button> */}
                     </div>
                   </td>
                   <td className="p-3">
                     <span
                       className={
-                        b?.libraryAvailable === true
-                          ? "text-green-600"
-                          : "text-red-500"
+                        b?.libraryAvailable === true ? "text-green-600" : "text-red-500"
                       }
                     >
                       {b.libraryAvailable ? "In Stock" : "Out of Stock"}
                     </span>
                   </td>
-                  <td className="p-3 space-x-3 ">
+                  <td className="p-3 space-x-3">
                     <button
                       onClick={() => handleAddToCart(b.bookId)}
                       className="inline-flex items-center bg-[#F1C40F] hover:bg-green-600 text-white px-4 py-1 rounded transition"
@@ -154,29 +126,19 @@ export default function WishlistPage() {
                       <ShoppingCartIcon size={16} className="mr-1" />
                       Add to Cart
                     </button>
-                    <button onClick={() =>handleDelete(b.bookId)} 
-                    className="inline-flex items-center bg-[#F1C40F] hover:bg-green-600 text-white px-4 py-1 rounded transition">
-                      <Delete size={16} className="mr-1" />
-                      
+                    <button
+                      onClick={() => handleDelete(b.bookId)}
+                      className="inline-flex items-center bg-[#F1C40F] hover:bg-green-600 text-white px-4 py-1 rounded transition"
+                    >
+                      <HeartIcon size={16} className="mr-1" />
                       Remove
                     </button>
-                    
                   </td>
-                  {/* <td className="p-3 space-x-2">
-                    <button onClick={handleDelete} className="inline-flex items-center bg-[#F1C40F] hover:bg-green-600 text-white px-4 py-1 rounded transition">
-                      Remove
-                    </button>
-                  </td> */}
                 </tr>
-                
               );
             })}
           </tbody>
         </table>
-
-        
-
-        
       </div>
     </div>
   );

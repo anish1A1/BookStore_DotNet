@@ -1,20 +1,22 @@
-// app/staff/components/Sidebar.jsx
 "use client";
 
-import React from 'react';
+import React, { useContext } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboardIcon,
   ClipboardListIcon,
-  UserIcon,
-  BookOpenIcon,
-  SettingsIcon,
   LogOutIcon,
+  BookOpenIcon,
 } from "lucide-react";
+import { toast } from "sonner";
+import { AuthContext } from "../../../utils/auth"; // Adjust the path as needed
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setUser } = useContext(AuthContext); // Assuming AuthContext has setUser
+
   const menu = [
     {
       href: "/staff/dashboard",
@@ -28,10 +30,23 @@ export default function Sidebar() {
     },
     {
       href: "/staff/orderdetails",
-      label: "Orders",
-      icon: <ClipboardListIcon size={20} />,
+      label: "Order Details",
+      icon: < BookOpenIcon size={20} />,
     },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    if (setUser) {
+      setUser(null); 
+    }
+
+    
+    toast.success("Logged out successfully");
+
+    
+    router.push("/login"); 
+  };
 
   return (
     <aside className="w-64 bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 sticky top-0 h-screen flex flex-col">
@@ -68,9 +83,7 @@ export default function Sidebar() {
       {/* Sign Out */}
       <div className="px-6">
         <button
-          onClick={() => {
-            /* your logout logic */
-          }}
+          onClick={handleLogout}
           className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-gray-200 rounded-lg"
         >
           <LogOutIcon size={20} className="text-red-600" />
@@ -78,10 +91,6 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Footer / Version */}
-      <div className="px-6 py-4 border-t border-gray-200 text-xs text-gray-500">
-        v1.0.0
-      </div>
     </aside>
   );
 }

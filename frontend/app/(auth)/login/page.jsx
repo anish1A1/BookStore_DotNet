@@ -48,7 +48,7 @@ export default function LoginPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold">
               <span className="text-[#2C3F51]">Book</span>
-              <span className="text-gray-800">_Lux</span>
+              <span className="text-gray-800">Lux</span>
             </h1>
             <p className="text-xs uppercase text-gray-500 tracking-widest mt-1">
               Express Books
@@ -65,7 +65,7 @@ export default function LoginPage() {
               <input
                 id="username"
                 name="username"
-                placeholder="James"
+                placeholder="Enter your username"
                 value={credentials.username}
                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
                 required
@@ -95,9 +95,9 @@ export default function LoginPage() {
             </button>
           </form>
           <p className="text-sm text-gray-600 text-center mt-4">
-            Forgot your password?{" "}
-            <Link href="/forgot-password" className="text-[#2C3F51] hover:underline">
-              Reset it
+            Are you not a user?{" "}
+            <Link href="/register" className="text-[#2C3F51] hover:underline">
+              Register
             </Link>
           </p>
         </div>

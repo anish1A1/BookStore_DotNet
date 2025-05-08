@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BarChart2Icon, PackageIcon, AlertTriangleIcon, TrendingUpIcon } from "lucide-react";
+import { BarChart2Icon, PackageIcon, AlertTriangleIcon, TrendingUpIcon, BookOpenIcon, TagIcon, BellIcon, PieChartIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "../../../utils/axios";
 
@@ -221,17 +221,19 @@ export default function AdminDashboardPage() {
           <h2 className="font-bold text-lg mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Manage Books", emoji: "📚", path: "/admin/book-management" },
-              { label: "Manage Discounts", emoji: "🏷️", path: "/admin/discount" },
-              { label: "Announcements", emoji: "📢", path: "/admin/notice" },
-              { label: "Reports", emoji: "📊", path: "/admin/reports" },
+              { label: "Manage Books", icon: BookOpenIcon, path: "/admin/book-management" },
+              { label: "Manage Discounts", icon: TagIcon, path: "/admin/discount" },
+              { label: "Announcements", icon: BellIcon, path: "/admin/notice" },
+              { label: "Reports", icon: PieChartIcon, path: "/admin/dashboard" },
             ].map((action) => (
               <button
                 key={action.label}
                 onClick={() => router.push(action.path)}
                 className="p-4 border border-gray-300 rounded-md hover:bg-gray-50 text-center"
               >
-                <div className="mb-2 text-2xl">{action.emoji}</div>
+                <div className="mb-1 flex justify-center">
+                  <action.icon size={25} className="text-gray-600" />
+                </div>
                 <div className="font-bold">{action.label}</div>
               </button>
             ))}

@@ -66,7 +66,7 @@ export default function SignUpPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold">
               <span className="text-[#2C3F51]">Book</span>
-              <span className="text-gray-800">_Lux</span>
+              <span className="text-gray-800">Lux</span>
             </h1>
             <p className="text-xs uppercase text-[#2C3F51] tracking-widest mt-1">
               Express Books
@@ -86,6 +86,42 @@ export default function SignUpPage() {
             onSubmit={handleSubmit}
             className="mt-4 space-y-4"
           >
+           {/* Avatar picker */}
+           <div className="flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 mb-2">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar preview"
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <svg
+                    className="w-full h-full text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 24 28"
+                  >
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                  </svg>
+                )}
+              </div>
+              <label
+                htmlFor="avatar"
+                className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1 rounded transition"
+              >
+                {avatarPreview ? "Change Photo" : "Upload Photo"}
+              </label>
+              <input
+                id="avatar"
+                name="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </div>
+
+
             <div>
               <label htmlFor="name" className="block text-gray-700 mb-1">
               Username
@@ -110,7 +146,7 @@ export default function SignUpPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="shresthajames21@gmail.com"
+                placeholder="Enter your email"
                 value={UserEmail}
                  onChange={(e) => setUserEmail(e.target.value)}
                 required
@@ -162,42 +198,6 @@ export default function SignUpPage() {
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
             </div>
-
-            {/* Avatar picker */}
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-2">
-                {avatarPreview ? (
-                  <img
-                    src={avatarPreview}
-                    alt="Avatar preview"
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <svg
-                    className="w-full h-full text-gray-400"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-                  </svg>
-                )}
-              </div>
-              <label
-                htmlFor="avatar"
-                className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1 rounded transition"
-              >
-                {avatarPreview ? "Change Photo" : "Upload Photo"}
-              </label>
-              <input
-                id="avatar"
-                name="avatar"
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-              />
-            </div>
-
             <button
               type="submit"
               className="w-full bg-[#2C3F51] text-white py-2 rounded hover:bg-[#243544] transition"

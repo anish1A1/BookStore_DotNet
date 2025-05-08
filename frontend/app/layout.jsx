@@ -1,11 +1,8 @@
-import './globals.css'
-import Navbar from './components/navbar'
-import Footer from './components/footer'
-import { AuthProvider } from '../utils/auth'
-import { BookProvider } from '../utils/book'
-import { OrderProvider } from '../utils/order'
-import { Toaster } from "sonner";
-import Topbar from './components/topbar'
+import './globals.css';
+import { AuthProvider } from '../utils/auth';
+import { BookProvider } from '../utils/book';
+import { OrderProvider } from '../utils/order';
+import LayoutWrapper from './components/layoutwrapper';
 
 export default function RootLayout({ children }) {
   return (
@@ -14,13 +11,9 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <BookProvider>
             <OrderProvider>
-            <Topbar />
-            <Navbar />
-            <main className="flex-grow">
-            <Toaster position="top-center" />
-            {children}
-            </main>
-            <Footer />
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
             </OrderProvider>
           </BookProvider>
         </AuthProvider>

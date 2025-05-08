@@ -36,13 +36,19 @@ export default function CartPage() {
 
   const {user, fetchUserData} = useContext(AuthContext);
 
-  
 
   useEffect(() => {
-
+      fetchUserData()
       fetchCart()
     // fetchOrders()
   },[]);
+
+  if (!user) {
+    router.push("/login");
+    toast.error("Please login first!");
+  }
+
+
   
   const [quantity, setQuantity] = useState([]);
   
@@ -105,7 +111,7 @@ export default function CartPage() {
       const validCartItems = Array.isArray(cartItems) ? cartItems : [];
 
       const subtotal = validCartItems.reduce((sum, item) => {
-        const price = item.book.isOnSale ? item.book.discountedPrice : item.book.bookPrice;
+        const price = item.book?.isOnSale ? item.book?.discountedPrice : item.book?.bookPrice;
         return sum + price * item.quantity;
       }, 0);
 
@@ -119,7 +125,7 @@ export default function CartPage() {
       const totalQuantity = validCartItems.reduce((sum, item) => sum + item.quantity, 0);
       
       const totalPrice = validCartItems.reduce((sum, item) => {
-        const price = item.book.discountedPrice > 0 ? item.book.discountedPrice : item.book.bookPrice;
+        const price = item?.book?.discountedPrice > 0 ? item?.book?.discountedPrice : item?.book?.bookPrice;
         console.log("Price is", price);
         return sum + price * item.quantity;
       }, 0);
