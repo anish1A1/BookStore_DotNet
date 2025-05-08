@@ -36,15 +36,7 @@ export default function CartPage() {
 
   const {user, fetchUserData} = useContext(AuthContext);
 
-  useEffect(() => {
-      fetchUserData();
-    }, [user]);
   
-    if (!user) {
-      router.push("/login");
-      toast.error("Please login first!");
-      return;
-    }
 
   useEffect(() => {
 
@@ -182,7 +174,7 @@ export default function CartPage() {
                     <div>
                       <h3 className="font-bold">{item?.book?.bookTitle}</h3>
                       <p className="text-sm text-gray-600">{item?.book?.authorName}</p>
-                      <p className="text-xs text-gray-500">Format: {item?.boo?.formatName}</p>
+                      <p className="text-xs text-gray-500">Format: {item?.book?.formatName}</p>
                       <button
                         onClick={() => updateQuantity(item.cartItemId)}
                         className="text-red-500 text-xs flex items-center mt-2 md:hidden cursor-pointer p-3 "

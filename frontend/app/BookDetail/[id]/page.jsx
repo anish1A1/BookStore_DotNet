@@ -64,7 +64,7 @@ export default function BookDetailPage() {
     }
 
     try {
-      const response = await AddToCart(bookId, quantity);
+      const response = await AddToCart(bookId, wantedQuantity);
       toast.success(response?.message || "Added to cart successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add item");
