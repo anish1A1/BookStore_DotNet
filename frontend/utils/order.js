@@ -11,6 +11,7 @@ export const OrderProvider =({children}) => {
     const [orderById, setOrderById] = useState([]);
     const [loading, setLoading] = useState(true);
     const [wishlists, setWishlists] = useState([]);
+    const [cartWhole, setCartWhole] = useState([]); 
 
 
     const fetchCart = async () => {
@@ -34,6 +35,24 @@ export const OrderProvider =({children}) => {
             setLoading(false);
         }
     };
+
+    const fetchCartWhole = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.get('/cart/whole-data', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            setCartWhole(response.data);
+            console.log("Cart data is ", response.data);
+        } catch (error) {
+            const errorMessage = error.response?.data?.Message || 'Error fetching cart';
+            
+            console.error('Error fetching the Cart',errorMessage);
+            throw error?.response?.data;
+        }
+    }
 
     const AddToCart = async (bookId, quantity) => {
         const token = localStorage.getItem('token');
@@ -71,7 +90,7 @@ export const OrderProvider =({children}) => {
         } catch (error) {
             const errorMessage = error.response?.data?.Message || 'Error updating book quantity';
             
-            console.error('Error updating book quantity',errorMessage);
+            // console.error('Error updating book quantity',errorMessage);
             throw error?.response?.data;
         } finally {
             setLoading(false);
@@ -105,7 +124,7 @@ export const OrderProvider =({children}) => {
     const fetchOrders = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`/orders/`, {
+            const response = await axios.get(`/order/`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -201,12 +220,12 @@ export const OrderProvider =({children}) => {
             setLoading(false);
         }
     };
-    const placeOrder = async ({ email, cartItems }) => {
+    const placeOrder = async ({ email, cartItems, TotalAmount }) => {
         const token = localStorage.getItem('token');
         try {
           setLoading(true);
           console.log("Placing order:", { email, cartItems });
-          const response = await axios.post('/order', { email, cartItems }, {
+          const response = await axios.post('/order', { email, cartItems, TotalAmount }, {
             headers: { Authorization: `Bearer ${token}` },
           });
           await fetchCart(); // Clear cart after successful order
@@ -228,6 +247,7 @@ export const OrderProvider =({children}) => {
         loading,
         cartItems,
         wishlists,
+        cartWhole,
         fetchOrders,
         fetchOrdersById,
         AddToCart,
@@ -238,8 +258,9 @@ export const OrderProvider =({children}) => {
         getAllWishList,
         removeFromWishList,
         placeOrder,
+        fetchCartWhole,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [orders, cartItems, wishlists, orderById, loading]);
+    }), [orders, cartItems, wishlists, orderById, loading, cartWhole]);
 
     return (
         <OrderContext.Provider value={values}>

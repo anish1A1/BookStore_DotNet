@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using backend.Data;
+using backend.DTOs.Request;
 using backend.DTOs.Response;
 using backend.Model;
 using backend.Service;
@@ -36,7 +37,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderDTO>> PlaceOrder()
+    public async Task<ActionResult<OrderDTO>> PlaceOrder([FromBody] PlaceOrderRequest request)
     {
         // In this post request cartItems should be provided by the frontend
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -59,6 +60,9 @@ public class OrderController : ControllerBase
                 return BadRequest(new { Message = $"Not enough stock for book: {item.Book.BookTitle}" });
         }
 
+        if (request.TotalAmount <= 0)
+            return BadRequest(new { Message = "Total amount must be greater than 0" });
+
         var order = new Order
         {
             OrderId = Guid.NewGuid(),
@@ -66,7 +70,7 @@ public class OrderController : ControllerBase
             OrderDate = DateTime.UtcNow,
             Status = "Pending",
             ClaimCode = GenerateClaimCode(),
-            TotalAmount = cart.CartItems.Sum(ci => ci.Quantity * ci.UnitPrice),
+            TotalAmount = request.TotalAmount,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

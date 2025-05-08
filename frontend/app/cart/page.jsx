@@ -82,8 +82,8 @@ export default function CartPage() {
           const response = await updateCart(id, quantity);
           toast.success(response.message);
         } catch (error) {
-          toast.error(error?.response?.data?.message || "Failed to update quantity");
-          console.error("Failed to update quantity:", error?.response);
+          toast.error(error?.message || "Failed to update quantity");
+          // console.error("Failed to update quantity:", error?.response);
 
           setQuantity((prev) => ({ ...prev, [id]: prev[id] }));
         }
@@ -102,31 +102,29 @@ export default function CartPage() {
 
 
       // Totals
-      const subtotal = cartItems?.reduce((sum, item) => {
-        const price = item?.onSale ? item?.salePrice : item?.bookPrice
-        return sum + price * item?.quantity
-      }, 0)
+      const validCartItems = Array.isArray(cartItems) ? cartItems : [];
+
+      const subtotal = validCartItems.reduce((sum, item) => {
+        const price = item.book.isOnSale ? item.book.discountedPrice : item.book.bookPrice;
+        return sum + price * item.quantity;
+      }, 0);
+
       const discountPercent = 5
       const discount = parseFloat(
         (subtotal * (discountPercent / 100)).toFixed(2)
       )
-      const total = parseFloat((subtotal - discount).toFixed(2))
       
-
-
-      const validCartItems = Array.isArray(cartItems) ? cartItems : [];
+      const total = parseFloat((subtotal - discount).toFixed(2));
 
       const totalQuantity = validCartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-      const totalPrice = validCartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+      
+      const totalPrice = validCartItems.reduce((sum, item) => {
+        const price = item.book.discountedPrice > 0 ? item.book.discountedPrice : item.book.bookPrice;
+        console.log("Price is", price);
+        return sum + price * item.quantity;
+      }, 0);
       
       const discountBy5Percent = totalQuantity >= 5 ? totalPrice * 0.05 : 0;
-          // console.log("cartItems", cartItems);
-          // console.log("totalQuantity", totalQuantity);
-          // console.log("totalPrice", totalPrice);
-          // console.log("discountBy5Percent", discountBy5Percent);
-
-
 
       if(loading) {
         return <p className='text-center py-20'>Loading...</p>
@@ -187,7 +185,7 @@ export default function CartPage() {
                   {/* Price */}
                   <div className="w-full md:w-1/6 text-center mb-4 md:mb-0">
                     <div className="md:hidden text-sm text-gray-500 mb-1">Price:</div>
-                    ${item.onSale ? item.salePrice : item?.book?.bookPrice}
+                    ${item?.book?.isOnSale ? item?.book?.discountedPrice : item?.book?.bookPrice}
                   </div>
 
                   <div className="w-full md:w-1/6 flex justify-center mb-4 md:mb-0">
@@ -216,7 +214,7 @@ export default function CartPage() {
                     <div className="md:hidden text-sm text-gray-500 mb-1">Total:</div>
                     <span className="font-bold">
                       {/* $ {((item.onSale ? item.salePrice : item.price) * item.quantity).toFixed(2)} */}
-                      ${item.unitPrice * item.quantity}
+                      ${item?.book?.isOnSale ? item?.book?.discountedPrice : item?.book?.bookPrice * item.quantity}
                     </span>
                     <button
                       onClick={() => removeItem(item?.book?.bookId)}

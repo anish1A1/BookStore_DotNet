@@ -1,37 +1,60 @@
 "use client";
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 import { OrderContext } from "../../utils/order";
 import { toast } from "sonner";
 
 export default function CheckoutPage() {
-  const { cartItems, placeOrder } = useContext(OrderContext);
+  const { cartWhole, placeOrder, fetchCartWhole } = useContext(OrderContext);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(()=> {
+    fetchCartWhole();
+  }, []);
   const next = () => setStep((s) => Math.min(s + 1, 3));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.book?.bookPrice || 0;
+
+  const subtotal = (cartWhole?.cartItems || []).reduce((sum, item) => {
+    const price = typeof item.book?.discountedPrice === 'number' && item.book.discountedPrice > 0 
+      ? item.book.discountedPrice 
+      : item.book?.bookPrice || 0;
     return sum + price * item.quantity;
   }, 0);
-  const discountPercent = 5;
+
+
+  const totalBooks = (cartWhole?.cartItems || []).reduce((sum, item) => sum + item.quantity, 0);
+
+  const orderCount = cartWhole?.orderCount || 0;
+
+  let discountPercent = 0;
+    if (totalBooks >= 5) {
+      discountPercent += 5;
+    }
+    if (orderCount >= 10) {
+      discountPercent += 10;
+    }
   const discount = parseFloat((subtotal * (discountPercent / 100)).toFixed(2));
   const total = parseFloat((subtotal - discount).toFixed(2));
 
   const handleCompleteOrder = async () => {
     setLoading(true);
     try {
+      if(!email) {
+        toast.error('Please enter your email');
+      }
       const response = await placeOrder({
         email,
-        cartItems,
+        cartItems : cartWhole?.cartItems || [],
+        TotalAmount : total
       });
+      
       toast.success("Order placed successfully! Check your email for the claim code.");
+      console.log("Order placed successfully:", response.data);
       setStep(3); // Move to confirmation step
     } catch (error) {
       toast.error(error?.Message || "Failed to place order");
@@ -124,30 +147,38 @@ export default function CheckoutPage() {
                 <p>Tomorrow, July 15 (10 AM)</p>
               </div>
               <div className="border-b pb-4 mb-4">
-                <h3 className="font-bold mb-4">Items ({cartItems.length})</h3>
-                {cartItems.map((item, i) => (
-                  <div key={i} className="flex items-center mb-4">
+              <h3 className="font-bold mb-4">Items ({cartWhole?.cartItems?.length || 0})</h3>
+
+              {cartWhole?.cartItems?.map((item, i) => (
+                  <div key={item.cartItemId} className="flex items-center mb-4">
                     <div className="flex-grow">
-                      <h4 className="font-bold">{item.book.bookTitle}</h4>
+                      <h4 className="font-bold">{item.book?.bookTitle}</h4>
                       <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                     </div>
-                    <div className="text-right font-bold">
-                      ${(item.unitPrice * item.quantity).toFixed(2)}
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-700">Rs. {item.book.discountedPrice ? item.book.discountedPrice.toFixed(2) : item.book.bookPrice.toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
+
               </div>
               <div className="mb-6 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
-                {cartItems.length >= 5 && (
+                {totalBooks >= 5 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount ({discountPercent}%)</span>
                     <span>-${discount.toFixed(2)}</span>
                   </div>
                 )}
+                {orderCount >= 10 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Loyalty Discount (10%)</span>
+                      <span>-Rs. {(subtotal * 0.10).toFixed(2)}</span>
+                    </div>
+                  )}
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>

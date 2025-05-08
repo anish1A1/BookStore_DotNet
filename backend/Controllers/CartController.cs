@@ -26,12 +26,15 @@ public class CartController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized(new { Message = "User ID not found in claims" });
         var userId = Guid.Parse(userIdClaim);
-
+    
         var cart = await _context.Carts
             .Where(c => c.UserId == userId)
             .Include(c => c.CartItems)
             .ThenInclude(ci => ci.Book)
             .ThenInclude(b => b.Inventory)
+            .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.Book)
+            .ThenInclude(b => b.Discounts)
             .SelectMany(c => c.CartItems)
             .Select(ci => new CartItemDTO
             {
@@ -54,12 +57,90 @@ public class CartController : ControllerBase
                     FormatName = ci.Book.FormatName,
                     Rating = ci.Book.Rating,
                     TotalSales = ci.Book.TotalSales,
-                    ImageUrl = ci.Book.ImageUrl ?? ""
+                    ImageUrl = ci.Book.ImageUrl ?? "",
+                    DiscountedPrice = ci.Book.Discounts.Count != 0 
+                        ? ci.Book.BookPrice * (1 - ci.Book.Discounts.OrderByDescending(d => d.StartDate).First().Percentage / 100) 
+                        : ci.Book.BookPrice,
+                    DiscountPercentage = ci.Book.Discounts.Count != 0 
+                        ? ci.Book.Discounts.OrderByDescending(d => d.StartDate).First().Percentage 
+                        : 0,
+                    IsOnSale = ci.Book.IsOnSale
                 },
                 Quantity = ci.Quantity,
                 UnitPrice = ci.UnitPrice
             })
             .ToListAsync();
+
+        return Ok(cart);
+    }
+
+
+    [HttpGet("whole-data")]
+    public async Task<ActionResult<CartDTO>> GetCartsWholeData()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+            return Unauthorized(new { Message = "User ID not found in claims" });
+
+        var userId = Guid.Parse(userIdClaim);
+
+        // Getting OrderCount directly from the Users table
+        var orderCount = await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.OrderCount)
+            .FirstOrDefaultAsync();
+
+        var cart = await _context.Carts
+            .Where(c => c.UserId == userId)
+            .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.Book)
+                .ThenInclude(b => b.Inventory)
+            .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.Book)
+                .ThenInclude(b => b.Discounts)
+            .Select(c => new CartDTO
+            {
+                CartId = c.CartId,
+                UserId = c.UserId,
+                CreatedAt = c.CreatedAt,
+                OrderCount = orderCount, //  Attached OrderCount to the response
+                CartItems = c.CartItems.Select(ci => new CartItemDTO
+                {
+                    CartItemId = ci.CartItemId,
+                    BookId = ci.BookId,
+                    Quantity = ci.Quantity,
+                    UnitPrice = ci.UnitPrice,
+                    Book = new BookDTO
+                    {
+                        BookId = ci.Book.BookId,
+                        ISBN = ci.Book.ISBN,
+                        BookTitle = ci.Book.BookTitle,
+                        BookDescription = ci.Book.BookDescription,
+                        PublicationDate = ci.Book.PublicationDate,
+                        BookLanguage = ci.Book.BookLanguage,
+                        BookPrice = ci.Book.BookPrice,
+                        StockCount = ci.Book.Inventory != null ? ci.Book.Inventory.StockCount : 0,
+                        LibraryAvailable = ci.Book.LibraryAvailable,
+                        AuthorName = ci.Book.AuthorName,
+                        PublisherName = ci.Book.PublisherName,
+                        GenreName = ci.Book.GenreName,
+                        FormatName = ci.Book.FormatName,
+                        Rating = ci.Book.Rating,
+                        TotalSales = ci.Book.TotalSales,
+                        ImageUrl = ci.Book.ImageUrl ?? "",
+                        DiscountedPrice = ci.Book.Discounts.Count != 0 
+                        ? ci.Book.BookPrice * (1 - ci.Book.Discounts.OrderByDescending(d => d.StartDate).First().Percentage / 100) 
+                        : ci.Book.BookPrice,
+                    DiscountPercentage = ci.Book.Discounts.Count != 0 
+                        ? ci.Book.Discounts.OrderByDescending(d => d.StartDate).First().Percentage 
+                        : 0,
+                    IsOnSale = ci.Book.IsOnSale
+                    }
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        if (cart == null) return NotFound(new { Message = "Cart not found" });
 
         return Ok(cart);
     }
