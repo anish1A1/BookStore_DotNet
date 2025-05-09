@@ -1,30 +1,9 @@
 "use client";
 
-import React, { useState, useContext, useEffect } from "react";
-import { BookContext } from "../../../utils/book";
+import React from "react";
 import { toast } from "sonner";
 
-const AddBook = ({ setShowForm }) => {
-  const { createBook } = useContext(BookContext);
-
-  const [formData, setFormData] = useState({
-    ISBN: "",
-    BookTitle: "",
-    BookDescription: "",
-    PublicationDate: "",
-    BookLanguage: "",
-    BookPrice: 0,
-    InitialStockCount: 0,
-    LibraryAvailable: true,
-    AuthorName: "",
-    PublisherName: "",
-    GenreName: "Fiction",
-    FormatName: "Paperback",
-    IsExclusive: false,
-    IsAwardWinner: false,
-    imageFile: null,
-  });
-
+const AddBook = ({ setShowForm, formData, setFormData, handleSubmit, editingId }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -37,30 +16,13 @@ const AddBook = ({ setShowForm }) => {
     setFormData({ ...formData, imageFile: e.target.files[0] });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await createBook(formData);
-      toast.success(response.message || "Book created successfully!");
-      setShowForm(false);
-    } catch (error) {
-      console.error("Error saving book", error);
-      toast.error(
-        error.response?.data?.message ||
-        error.message ||
-        "An error occurred while creating the book. Please try again."
-      );
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full space-y-4"
       >
-        <h2 className="text-xl font-bold">Add New Book</h2>
+        <h2 className="text-xl font-bold">{editingId ? "Edit Book" : "Add New Book"}</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
           {/* Left Wing */}
@@ -290,7 +252,7 @@ const AddBook = ({ setShowForm }) => {
             type="submit"
             className="px-4 py-2 bg-blue-600 text-white rounded"
           >
-            Create
+            {editingId ? "Update" : "Create"}
           </button>
         </div>
       </form>

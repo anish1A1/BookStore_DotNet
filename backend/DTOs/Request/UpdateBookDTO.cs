@@ -17,4 +17,5 @@ public class UpdateBookDTO
     public string FormatName { get; set; } = string.Empty;
     public bool IsAwardWinner { get; set; }
     public bool IsExclusive { get; set; }
+    public int? InitialStockCount { get; set; } 
 }

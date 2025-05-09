@@ -195,7 +195,7 @@ namespace backend.Controllers
     }
 
     // POST: /book
-   [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
     public async Task<ActionResult<BookDTO>> CreateBook([FromForm] CreateBookDTO createBookDTO, IFormFile imageFile)
     {
@@ -306,7 +306,9 @@ namespace backend.Controllers
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateBook(Guid id, UpdateBookDTO updateBookDTO)
     {
-        var book = await _context.Books.FindAsync(id);
+        var book = await _context.Books
+            .Include(b => b.Inventory)
+            .FirstOrDefaultAsync(b => b.BookId == id);
         if (book == null)
         {
             return NotFound(new { Message = "Book not found" });
@@ -326,6 +328,11 @@ namespace backend.Controllers
         book.IsAwardWinner = updateBookDTO.IsAwardWinner;
         book.IsExclusive = updateBookDTO.IsExclusive;
         book.UpdatedAt = DateTime.UtcNow;
+        if (book.Inventory != null && updateBookDTO.InitialStockCount.HasValue)
+        {
+            book.Inventory.StockCount = updateBookDTO.InitialStockCount.Value;
+            book.Inventory.LastUpdated = DateTime.UtcNow;
+        }
         await _context.SaveChangesAsync();
 
         return NoContent();

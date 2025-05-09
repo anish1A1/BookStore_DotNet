@@ -71,33 +71,45 @@ export const BookProvider = ({children}) => {
         }
     };
     
-    const updateBook = async (id, formData, router) => {
-        const token = localStorage.getItem('token');
-        const data = new FormData();
-
-        Object.keys(formData).forEach((key) => {
-            data.append(key, formData[key]);
-        });
-
+    const updateBook = async (id, formData) => {
+        const token = localStorage.getItem("token");
+        const data = {
+          ISBN: formData.ISBN,
+          BookTitle: formData.BookTitle,
+          BookDescription: formData.BookDescription,
+          PublicationDate: formData.PublicationDate,
+          BookLanguage: formData.BookLanguage,
+          BookPrice: formData.BookPrice,
+          InitialStockCount: formData.InitialStockCount,
+          LibraryAvailable: formData.LibraryAvailable,
+          AuthorName: formData.AuthorName,
+          PublisherName: formData.PublisherName,
+          GenreName: formData.GenreName,
+          FormatName: formData.FormatName,
+          IsAwardWinner: formData.IsAwardWinner,
+          IsExclusive: formData.IsExclusive,
+        };
+    
         try {
-            const response = await axios.put(`/book/${id}`, data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            setBooks(prevBooks => prevBooks.map(book => book.id === id ? response.data : book));
-            router.push('/books');
-            return {status: 'success', message: 'Book updated successfully'}
+          const response = await axios.put(`/book/${id}`, data, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setBooks((prevBooks) =>
+            prevBooks.map((book) =>
+              book.bookId === id ? { ...book, ...data } : book
+            )
+          );
+          return { status: "success", message: "Book updated successfully" };
         } catch (error) {
-            const errorMessage = error.response?.data?.Message || 'Error updating book';
-            
-            console.error('Error updating book',errorMessage);
-            throw errorMessage.response.data;
+          const errorMessage = error.response?.data?.Message || "Error updating book";
+          console.error("Error updating book", error, error.response?.data);
+          throw errorMessage;
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
     
     const deleteBook = async (id) => {
         const token = localStorage.getItem('token');
