@@ -14,7 +14,10 @@ public class User
         [Required]
         [EmailAddress]
         public string UserEmail { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
 
+        public string ProfileImage { get; set; } = string.Empty; 
+        
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 

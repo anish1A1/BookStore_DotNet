@@ -13,6 +13,8 @@ public class RegisterDTO
         [EmailAddress]
         public string UserEmail { get; set; } = string.Empty;
 
+        public string PhoneNumber { get; set; } = string.Empty;
+
         [Required]
         [StringLength(100, MinimumLength = 6)]
         public string Password { get; set; } = string.Empty;

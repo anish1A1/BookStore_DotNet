@@ -44,6 +44,7 @@ namespace backend.Controllers
                 Id = Guid.NewGuid(),
                 UserName = registerDto.UserName,
                 UserEmail = registerDto.UserEmail,
+                PhoneNumber = registerDto.PhoneNumber,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                 MembershipId = Guid.NewGuid().ToString().Substring(0, 8),
                 Role = await _context.Users.AnyAsync() ? "Member" : "Admin",
@@ -72,7 +73,10 @@ namespace backend.Controllers
                     UserId = user.Id,
                     UserName = user.UserName,
                     UserEmail = user.UserEmail,
-                    Role = user.Role
+                    PhoneNumber = user.PhoneNumber,
+                    ProfileImage = user.ProfileImage,
+                    Role = user.Role,
+                    CreatedAt = user.CreatedAt
                 }
             });
         }
@@ -108,7 +112,10 @@ namespace backend.Controllers
                     UserId = user.Id,
                     UserName = user.UserName,
                     UserEmail = user.UserEmail,
-                    Role = user.Role
+                    PhoneNumber = user.PhoneNumber,
+                    ProfileImage = user.ProfileImage,
+                    Role = user.Role,
+                    CreatedAt = user.CreatedAt
                 }
             });
         }
@@ -130,7 +137,10 @@ namespace backend.Controllers
                 UserId = user.Id,
                 UserName = user.UserName,
                 UserEmail = user.UserEmail,
-                Role = user.Role
+                PhoneNumber = user.PhoneNumber,
+                ProfileImage = user.ProfileImage,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
             });
         }
         

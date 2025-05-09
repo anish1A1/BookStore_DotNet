@@ -50,7 +50,7 @@ export default function DashboardPage() {
     };
 
     checkAuth();
-  }, [fetchUserData, router]);
+  }, [router]);
 
   useEffect(() => {
     if (user) {
@@ -100,7 +100,7 @@ export default function DashboardPage() {
     e.preventDefault();
     try {
       await axios.put(
-        `/user/${user.Id}`,
+        `/user/${user.userId}`,
         {
           userName: profileData.userName,
           userEmail: profileData.userEmail,
@@ -113,7 +113,7 @@ export default function DashboardPage() {
       if (profileData.profileImage) {
         const formData = new FormData();
         formData.append("file", profileData.profileImage);
-        await axios.post(`/user/${user.Id}/upload-image`, formData, {
+        await axios.put(`/user/${user.userId}/upload-image`, formData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "multipart/form-data",
@@ -136,7 +136,7 @@ export default function DashboardPage() {
     }
     try {
       await axios.put(
-        `/user/${user.Id}/password`,
+        `/user/${user.userId}/password`,
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
@@ -180,7 +180,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="border-t pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 mb-5 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
                     <p>{user?.userEmail}</p>
@@ -198,9 +198,11 @@ export default function DashboardPage() {
                     <p>{user?.membershipLevel || "Standard"} ({user?.discountPercentage || 0}% discount)</p>
                   </div>
                 </div>
-                <Link href="#settings" onClick={() => setActiveTab("settings")} className="text-[#E3B23C] mt-4 hover:underline">
+                <div className="border-t pt-2">
+                <Link href="#settings" onClick={() => setActiveTab("settings")} className="text-[#E3B23C] hover:text-[#ff5a5c]">
                   Edit Profile
                 </Link>
+                </div>
               </div>
             </div>
           </div>

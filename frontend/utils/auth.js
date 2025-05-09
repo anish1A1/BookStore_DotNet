@@ -99,6 +99,7 @@ export const AuthProvider = ({children}) => {
     const authContextValue = useMemo(() => ({
         user,
         loading,
+        setUser,
         errors,
         role,
         login,

@@ -39,6 +39,7 @@ namespace backend.Controllers
                 Id = Guid.NewGuid(),
                 UserName = createUserDto.UserName,
                 UserEmail = createUserDto.UserEmail,
+                PhoneNumber = createUserDto.PhoneNumber,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
                 Role = createUserDto.Role,
                 CreatedAt = DateTime.UtcNow,
@@ -53,7 +54,10 @@ namespace backend.Controllers
                 UserId = user.Id,
                 UserName = user.UserName,
                 UserEmail = user.UserEmail,
-                Role = user.Role
+                PhoneNumber = user.PhoneNumber,
+                ProfileImage = user.ProfileImage,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
             };
 
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, userDto);
@@ -73,7 +77,10 @@ namespace backend.Controllers
                 UserId = u.Id,
                 UserName = u.UserName,
                 UserEmail = u.UserEmail,
-                Role = u.Role
+                PhoneNumber = u.PhoneNumber,
+                ProfileImage = u.ProfileImage,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt
             }).ToList();
 
             return Ok(userDtos);
@@ -111,7 +118,10 @@ namespace backend.Controllers
                 UserId = user.Id,
                 UserName = user.UserName,
                 UserEmail = user.UserEmail,
-                Role = user.Role
+                PhoneNumber = user.PhoneNumber,
+                ProfileImage = user.ProfileImage,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
             };
 
             return userDto;
@@ -181,6 +191,104 @@ namespace backend.Controllers
 
             user.UserName = userDto.UserName;
             user.UserEmail = userDto.UserEmail;
+            user.PhoneNumber = userDto.PhoneNumber;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound(new { Message = "User not found" });
+                }
+                throw;
+            }
+
+            return NoContent();
+        }
+        
+        
+        [HttpPut("{id}/upload-image")]
+        [Authorize]
+        public async Task<IActionResult> UploadProfileImage(Guid id, IFormFile file)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized(new { Message = "Invalid token or user ID missing" });
+            var currentUserId = Guid.Parse(userIdClaim);
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (id != currentUserId && userRole != "Admin")
+            {
+                return Forbid();
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { Message = "No file uploaded" });
+            }
+
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            try
+            {
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                user.ProfileImage = $"/uploads/{fileName}";
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Profile image updated successfully", ProfileImage = user.ProfileImage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Error uploading image", Details = ex.Message });
+            }
+        }
+
+        
+        [HttpPut("{id}/password")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePassword(Guid id, [FromBody] UpdatePasswordDTO passwordDto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized(new { Message = "Invalid token or user ID missing" });
+            var currentUserId = Guid.Parse(userIdClaim);
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (id != currentUserId && userRole != "Admin")
+            {
+                return Forbid();
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(passwordDto.CurrentPassword, user.PasswordHash))
+            {
+                return BadRequest(new { Message = "Current password is incorrect" });
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(passwordDto.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;
 
             try
@@ -199,10 +307,15 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        // Helper method to check if a user exists
         private bool UserExists(Guid id)
         {
             return _context.Users.Any(e => e.Id == id);
         }
+    }
+
+    public class UpdatePasswordDTO
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 }

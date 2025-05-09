@@ -1,4 +1,3 @@
-// app/signup/page.jsx
 "use client";
 
 import React, { useState } from "react";
@@ -8,15 +7,21 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const [username, setUsername] = useState('');
-  const [UserEmail, setUserEmail] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+
+  console.log('SignUpPage loaded, setAvatarFile:', typeof setAvatarFile);
+
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
   };
@@ -27,22 +32,46 @@ export default function SignUpPage() {
       setError('Passwords do not match');
       return;
     }
+
     try {
-      await axios.post('/auth/register', {
-        username,
-        UserEmail,
+      const response = await axios.post('/auth/register', {
+        userName: username,
+        userEmail,
+        phoneNumber: phone,
         password,
         confirmPassword
       });
+
+      const token = response.data.token;
+      localStorage.setItem('token', token);
+      
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append("file", avatarFile);
+        try {
+          await axios.put(`/user/${response.data.user.userId}/upload-image`, formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`
+            }
+          });
+          toast.success('Profile image uploaded successfully');
+        } catch (imageError) {
+          console.error('Image upload failed:', imageError.response?.data || imageError.message);
+          toast.error('Failed to upload profile image, but registration was successful');
+        }
+      }
+
       router.push('/login');
       toast.success('Registration successful');
     } catch (err) {
+      console.error('Registration error:', err.response?.data || err.message);
       if (err.response?.data?.errors) {
-        setError(err.response.data.errors); // Store all validation errors
+        setError(err.response.data.errors);
       } else {
         setError({ General: ['Registration failed'] });
       }
-    }  
+    }
   };
 
   return (
@@ -127,8 +156,8 @@ export default function SignUpPage() {
               Username
               </label>
               <input
-                id="Username"
-                name="Username"
+                id="username"
+                name="username"
                 type="text"
                 placeholder="Enter your name"
                 value={username}
@@ -147,7 +176,7 @@ export default function SignUpPage() {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
-                value={UserEmail}
+                value={userEmail}
                  onChange={(e) => setUserEmail(e.target.value)}
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
@@ -163,6 +192,8 @@ export default function SignUpPage() {
                 name="phone"
                 type="tel"
                 placeholder="Enter your phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
             </div>
@@ -177,8 +208,8 @@ export default function SignUpPage() {
                 type="password"
                 placeholder="Enter your password"
                 value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+                onChange={(e) => setPassword(e.target.value)}
+                required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
               />
             </div>
@@ -192,7 +223,7 @@ export default function SignUpPage() {
                 name="confirmPassword"
                 type="password"
                 value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter your password"
                 required
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2C3F51]"
