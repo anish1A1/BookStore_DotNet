@@ -101,7 +101,7 @@ export default function AboutPage() {
           <div className="absolute inset-y-0 left-1/2 w-1 bg-gray-300 transform -translate-x-1/2"></div>
           <ul className="space-y-12">
             {timeline.map((t, i) => (
-              <li key={t.year} className={`flex items-center gap-6 ${i % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}>
+              <li key={t.year + t.event} className={`flex items-center gap-6 ${i % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}>
                 <div className="flex-shrink-0 bg-white p-4 rounded-full shadow-lg">
                   <span className="text-xl font-bold text-[#F1C40F]">{t.year}</span>
                 </div>
