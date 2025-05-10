@@ -251,7 +251,8 @@ public class OrderController : ControllerBase
                         GenreName = oi.Book.GenreName,
                         FormatName = oi.Book.FormatName,
                         Rating = oi.Book.Rating,
-                        TotalSales = oi.Book.TotalSales
+                        TotalSales = oi.Book.TotalSales,
+                        ImageUrl = oi.Book.ImageUrl
                     },
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice
@@ -280,7 +281,7 @@ public class OrderController : ControllerBase
 
         order.Status = "Cancelled";
         order.UpdatedAt = DateTime.UtcNow;
-
+        order.ClaimCode = Guid.NewGuid().ToString();
         foreach (var item in order.OrderItems)
         {
             if (item.Book.Inventory != null)
@@ -300,8 +301,10 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{id}/fulfill")]
-    [Authorize(Roles = "Staff")]
+    [HttpPut("{id}/fulfill")]
+    // [Authorize(Roles = "Staff")]
+    [AllowAnonymous]
+
     public async Task<IActionResult> FulfillOrder(Guid id)
     {
         var order = await _context.Orders
@@ -316,6 +319,14 @@ public class OrderController : ControllerBase
 
         order.Status = "Fulfilled";
         order.UpdatedAt = DateTime.UtcNow;
+        
+        order.User.OrderCount += 1;
+        
+        if (order.User.OrderCount > 10 ) 
+        {
+            order.User.OrderCount = 1;
+        }
+
         await _context.SaveChangesAsync();
 
         return Ok(new { Message = "Order fulfilled successfully" });

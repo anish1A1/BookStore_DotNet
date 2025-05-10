@@ -13,6 +13,7 @@ import { BookContext } from "../../../utils/book";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { OrderContext } from "../../../utils/order";
+import axios from "../../../utils/axios";
 
 export default function BookDetailPage() {
   const router = useRouter();
@@ -71,6 +72,9 @@ export default function BookDetailPage() {
       console.error("Add to Cart Error:", error?.response);
     }
   };
+  const [reviews, setReviews] = useState([]);
+  
+
 
   const handleAddToWishListClick = async (bookId) => {
     const token = localStorage.getItem("token");
@@ -89,6 +93,24 @@ export default function BookDetailPage() {
       console.error("Add to Wishlist Error:", error?.response);
     }
   };
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(`/review/book/${id}`);
+        const data = await res.data;
+        setReviews(data || []);
+      } catch (err) {
+        console.error("Failed to fetch reviews:", err);
+        setReviews([]); // Optional fallback
+      }
+    };
+  
+    if (id) {
+      loadBook();
+      fetchReviews(); // fetch reviews here
+    }
+  }, [id, loadBook]);
+  
 
   const similar = [
     {
@@ -337,41 +359,70 @@ export default function BookDetailPage() {
               </p>
             )}
             {tab === "reviews" && (
-              <div className="space-y-4">
-                {[
-                  {
-                    stars: 5,
-                    title: "Captivating Mystery",
-                    author: "Sarah J.",
-                    date: "June 28, 2023",
-                    text: "I couldn't put this book down—twists at every turn!",
-                  },
-                  {
-                    stars: 4,
-                    title: "Well-Crafted Characters",
-                    author: "Michael T.",
-                    date: "June 20, 2023",
-                    text: "Deep, believable characters—pace slowed mid-story, but ending thrilled.",
-                  },
-                ].map((r, i) => (
-                  <div key={i} className="border-b pb-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      {[...Array(5)].map((_, j) => (
-                        <StarIcon
-                          key={j}
-                          size={16}
-                          className={j < r.stars ? "text-[#E3B23C]" : "text-gray-300"}
-                        />
-                      ))}
-                      <span className="font-bold ml-2">{r.title}</span>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-2">
-                      by {r.author} – {r.date}
-                    </p>
-                    <p>{r.text}</p>
-                  </div>
-                ))}
-              </div>
+              // <div className="space-y-4">
+              //   {[
+              //     {
+              //       stars: 5,
+              //       title: "Captivating Mystery",
+              //       author: "Sarah J.",
+              //       date: "June 28, 2023",
+              //       text: "I couldn't put this book down—twists at every turn!",
+              //     },
+              //     {
+              //       stars: 4,
+              //       title: "Well-Crafted Characters",
+              //       author: "Michael T.",
+              //       date: "June 20, 2023",
+              //       text: "Deep, believable characters—pace slowed mid-story, but ending thrilled.",
+              //     },
+              //   ].map((r, i) => (
+              //     <div key={i} className="border-b pb-4">
+              //       <div className="flex items-center space-x-2 mb-1">
+              //         {[...Array(5)].map((_, j) => (
+              //           <StarIcon
+              //             key={j}
+              //             size={16}
+              //             className={j < r.stars ? "text-[#E3B23C]" : "text-gray-300"}
+              //           />
+              //         ))}
+              //         <span className="font-bold ml-2">{r.title}</span>
+              //       </div>
+              //       <p className="text-sm text-gray-500 mb-2">
+              //         by {r.author} – {r.date}
+              //       </p>
+              //       <p>{r.text}</p>
+              //     </div>
+              //   ))}
+              // </div>
+              <div className="mt-8">
+  <h2 className="text-2xl font-semibold mb-4 text-[#2C3E50]">Customer Reviews</h2>
+  
+  {reviews.length === 0 ? (
+    <p className="text-gray-500">No reviews till now.</p>
+  ) : (
+    <div className="space-y-6">
+      {reviews.map((review) => (
+        <div key={review.reviewId} className="border p-4 rounded-md shadow-sm">
+          <div className="flex items-center space-x-2 mb-1">
+            {[...Array(5)].map((_, i) => (
+              <StarIcon
+                key={i}
+                size={16}
+                className={
+                  i < review.rating ? "text-[#E3B23C]" : "text-gray-300"
+                }
+              />
+            ))}
+            <span className="text-sm text-gray-500 ml-2">{review.rating} / 5</span>
+          </div>
+          <p className="text-sm text-gray-700">{review.comment}</p>
+          <p className="text-xs text-gray-400 mt-1">by {review.userName || "Anonymous"}</p>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
             )}
             {tab === "similar" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

@@ -36,12 +36,41 @@ public class ReviewController : ControllerBase
                 OrderId = r.OrderId,
                 Rating = r.Rating,
                 Comment = r.Comment,
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+                UserName = r.User.UserName
             })
             .ToListAsync();
 
         return Ok(reviews);
     }
+
+
+    [HttpGet("my")]
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetMyReviews()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return BadRequest(new { Message = "User ID not found in claims" });
+
+            var userId = Guid.Parse(userIdClaim);
+
+            var reviews = await _context.Reviews
+                .Where(r => r.UserId == userId)
+                .Select(r => new ReviewDTO
+                {
+                    ReviewId = r.ReviewId,
+                    UserId = r.UserId,
+                    BookId = r.BookId,
+                    OrderId = r.OrderId,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(reviews);
+        }
+
 
     [HttpPost]
     public async Task<ActionResult<ReviewDTO>> CreateReview(CreateReviewDTO createReviewDTO)

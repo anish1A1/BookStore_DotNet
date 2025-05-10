@@ -41,12 +41,12 @@ export default function CartPage() {
       fetchUserData()
       fetchCart()
     // fetchOrders()
+    if (!user) {
+      router.push("/login");
+      toast.error("Please login first!");
+    }
   },[]);
 
-  if (!user) {
-    router.push("/login");
-    toast.error("Please login first!");
-  }
 
 
   
@@ -220,7 +220,7 @@ export default function CartPage() {
                     <div className="md:hidden text-sm text-gray-500 mb-1">Total:</div>
                     <span className="font-bold">
                       {/* $ {((item.onSale ? item.salePrice : item.price) * item.quantity).toFixed(2)} */}
-                      ${item?.book?.isOnSale ? item?.book?.discountedPrice : item?.book?.bookPrice * item.quantity}
+                      ${item?.book?.discountedPrice > 0 ? item?.book?.discountedPrice * item.quantity : item?.book?.bookPrice * item.quantity}
                     </span>
                     <button
                       onClick={() => removeItem(item?.book?.bookId)}

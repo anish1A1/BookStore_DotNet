@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { XIcon } from "lucide-react";
 import axios from "../../../utils/axios";
+import { toast } from "sonner";
+import { OrderContext } from "../../../utils/order";
 
 function Modal({ isOpen, onClose, order, onFulfill, onCancel }) {
   if (!isOpen || !order) return null;
@@ -16,7 +18,7 @@ function Modal({ isOpen, onClose, order, onFulfill, onCancel }) {
           </button>
         </div>
         <div className="space-y-2 px-6 py-5" style={{ background: "var(--pale)" }}>
-          {["Claim Code", "Name", "Email", "Items", "Total"].map((label, i) => {
+        {["Claim Code", "Name", "Email", "Items", "Total"].map((label, i) => {
             const key = label.split(" ").join("").toLowerCase();
             const value = order[key] || (label === "Claim Code" ? order.claimCode : order.user?.[key] || "Unknown");
             return (
@@ -25,23 +27,57 @@ function Modal({ isOpen, onClose, order, onFulfill, onCancel }) {
               </p>
             );
           })}
+          {order.itemDetails?.length > 0 && (
+            <div className="text-gray-800">
+              <span className="font-medium">Book Details:</span>
+              <ul className="list-disc ml-6 mt-1">
+                {order.itemDetails.map((item, idx) => (
+                  <li key={idx}>
+                    {item.title} — Quantity: {item.quantity}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+
         </div>
-        <div className="flex">
-          <button
-            onClick={() => { onFulfill(); onClose(); }}
-            className="flex-1 py-3 font-medium text-white"
-            style={{ background: "var(--slate)" }}
-          >
-            Fulfill Order
-          </button>
-          <button
-            onClick={() => { onCancel(); onClose(); }}
-            className="flex-1 py-3 font-medium text-white"
-            style={{ background: "var(--navy)" }}
-          >
-            Cancel Order
-          </button>
-        </div>
+        
+        {order.status === "Fulfilled" || order.status === "Cancelled" ? null : (
+  <div className="px-6 py-5" style={{ background: "var(--pale)" }}>
+    <p className="text-gray-800">
+      <span className="font-medium">Status:</span> {order.status}
+    </p>
+  </div>
+)}
+
+{order.status === "Cancelled" ? (
+  <div className="px-6 py-4 text-red-600 font-semibold">
+    This order has been cancelled.
+  </div>
+) : order.status === "Fulfilled" ? (
+  <div className="px-6 py-4 text-green-600 font-semibold">
+    This order has been fulfilled.
+  </div>
+) : (
+  <div className="flex">
+    <button
+      onClick={() => { onFulfill(); onClose(); }}
+      className="flex-1 py-3 font-medium text-white"
+      style={{ background: "var(--slate)" }}
+    >
+      Fulfill Order
+    </button>
+    <button
+      onClick={() => { onCancel(); onClose(); }}
+      className="flex-1 py-3 font-medium text-white"
+      style={{ background: "var(--navy)" }}
+    >
+      Cancel Order
+    </button>
+  </div>
+)}
+
       </div>
     </div>
   );
@@ -53,7 +89,7 @@ export default function StaffDashboardPage() {
   const [messageColor, setMessageColor] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const {fulfillOrder, cancelOrder} = useContext(OrderContext);
   const handleSearch = async (e) => {
     e.preventDefault();
     const lookup = code.trim().toUpperCase();
@@ -74,14 +110,22 @@ export default function StaffDashboardPage() {
       const response = await axios.get(`/order/claim/${lookup}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const order = response.data;
       setSelectedOrder({
+        id: order.orderId, 
         claimCode: order.claimCode,
         name: order.user?.userName || "Unknown",
         email: order.user?.userEmail || "Unknown",
-        items: `${order.orderItems?.length || 0} books`,
+        items: `${order.orderItems?.length || 0} items`,
+        itemDetails: order.orderItems?.map((item) => ({
+          title: item.book?.bookTitle || "Unknown",
+          quantity: item.quantity,
+        })) || [],
         total: `$${order.totalAmount?.toFixed(2) || "0.00"}`,
+        status: order.status || "Unknown",
       });
+      
     } catch (error) {
       setMessage("❌ Invalid claim code or no token available.");
       setMessageColor("text-red-600");
@@ -91,16 +135,32 @@ export default function StaffDashboardPage() {
     }
   };
 
-  const fulfill = () => {
-    setMessage("✅ Books successfully fulfilled.");
-    setMessageColor("text-green-600");
-    // Optionally call backend to update status
+  const fulfill = async () => {
+    if (!selectedOrder?.id) return;
+  
+    try {
+      const response = await fulfillOrder(selectedOrder.id);
+      toast.success("✅ Order fulfilled successfully.");
+      setMessage("✅ Order fulfilled successfully.");
+      setMessageColor("text-green-600");
+    } catch (error) {
+      toast.error(error?.message || "❌ Failed to fulfill order.");
+      console.error(error);
+    }
   };
 
-  const cancel = () => {
-    setMessage("⚠️ Request has been cancelled.");
-    setMessageColor("text-red-600");
-    // Optionally call backend to cancel
+  const cancel = async () => {
+    if (!selectedOrder?.id) return;
+  
+    try {
+      const response = await cancelOrder(selectedOrder.id);
+      toast("⚠️ Order has been cancelled.");
+      setMessage("⚠️ Order has been cancelled.");
+      setMessageColor("text-red-600");
+    } catch (error) {
+      toast.error(error?.message || "❌ Failed to cancel order.");
+      console.error(error);
+    }
   };
 
   return (

@@ -21,7 +21,7 @@ export default function WishlistPage() {
     } else {
       getAllWishList();
     }
-  }, [user, router]);
+  }, [ router]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center py-20">Loading...</div>;

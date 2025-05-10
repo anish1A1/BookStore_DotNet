@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { AuthContext } from "../../utils/auth";
 import ProfileOrders from "./ProfileOrders";
 import WishlistPage from "../wishlist/page";
+import ProfileOrderReviews from "./ProfileOrderReview";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -50,7 +51,7 @@ export default function DashboardPage() {
     };
 
     checkAuth();
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -215,11 +216,7 @@ export default function DashboardPage() {
         return <WishlistPage/>;
 
       case "reviews":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">My Reviews</h2>
-          </div>
-        );
+        return <ProfileOrderReviews />;
 
       case "settings":
         return (

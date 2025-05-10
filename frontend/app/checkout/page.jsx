@@ -30,9 +30,10 @@ export default function CheckoutPage() {
   const totalBooks = (cartWhole?.cartItems || []).reduce((sum, item) => sum + item.quantity, 0);
 
   const orderCount = cartWhole?.orderCount || 0;
-
+  let discountAmount = 0;
   let discountPercent = 0;
     if (totalBooks >= 5) {
+      discountAmount = 5;
       discountPercent += 5;
     }
     if (orderCount >= 10) {
@@ -169,8 +170,8 @@ export default function CheckoutPage() {
                 </div>
                 {totalBooks >= 5 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Discount ({discountPercent}%)</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span>Discount (5%)</span>
+                    <span>-${(subtotal * 0.05).toFixed(2)}</span>
                   </div>
                 )}
                 {orderCount >= 10 && (

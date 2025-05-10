@@ -12,7 +12,7 @@ export const OrderProvider =({children}) => {
     const [loading, setLoading] = useState(true);
     const [wishlists, setWishlists] = useState([]);
     const [cartWhole, setCartWhole] = useState([]); 
-
+    const [reviews, setReviews] = useState([]);
 
     const fetchCart = async () => {
         const token = localStorage.getItem('token');
@@ -141,6 +141,43 @@ export const OrderProvider =({children}) => {
         }
     };
 
+    const cancelOrder = async (id) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.put(`/order/${id}/cancel`, null, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
+            return { status: 'success', message: 'Order canceled successfully' };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Error canceling order';
+            console.error('Error canceling order', errorMessage);
+            throw error?.response?.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fulfillOrder = async (id) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.put(`/order/${id}/fulfill`, null, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            return { status: 'success', message: 'Order fulfilled successfully' };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Error fulfilling order';
+            console.error('Error fulfilling order', errorMessage);
+            throw error?.response?.data;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const fetchOrdersById = async (id) => {
         try {
             const token = localStorage.getItem('token');
@@ -239,6 +276,8 @@ export const OrderProvider =({children}) => {
         }
       };
 
+      
+
 
 
     const values = useMemo(() => ({
@@ -259,6 +298,8 @@ export const OrderProvider =({children}) => {
         removeFromWishList,
         placeOrder,
         fetchCartWhole,
+        cancelOrder,
+        fulfillOrder,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [orders, cartItems, wishlists, orderById, loading, cartWhole]);
 
