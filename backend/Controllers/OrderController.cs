@@ -6,6 +6,7 @@ using backend.Model;
 using backend.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
@@ -17,11 +18,13 @@ public class OrderController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly EmailService _emailService;
+    private readonly IHubContext<NotificationHub> _hubContext;
     
-    public OrderController(ApplicationDbContext context,EmailService emailService)
+    public OrderController(ApplicationDbContext context,EmailService emailService, IHubContext<NotificationHub> hubContext)
     {
         _context = context;
         _emailService = emailService;
+        _hubContext = hubContext;
     }
 
     private string GenerateClaimCode()
@@ -327,10 +330,60 @@ public class OrderController : ControllerBase
             order.User.OrderCount = 1;
         }
 
+
+        // Create and save notification
+        var notification = new Notification
+        {
+            UserId = order.UserId,
+            Message = $"Your order #{order.OrderId} has been fulfilled.",
+            CreatedAt = order.UpdatedAt
+        };
+        _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
+
+
+        // Send real-time notification
+    var group = $"user-{order.UserId}";
+    await _hubContext.Clients.Group(group).SendAsync("OrderFulfilled", new
+    {
+        OrderId = order.OrderId,
+        Message = notification.Message,
+        FulfilledAt = notification.CreatedAt
+    });
+
+    await _hubContext.Clients.Group("admin").SendAsync("OrderFulfilled", new
+    {
+        OrderId = order.OrderId,
+        Message = notification.Message,
+        FulfilledAt = notification.CreatedAt
+    });
+
+
 
         return Ok(new { Message = "Order fulfilled successfully" });
     }
+
+    [HttpGet("notifications")]
+    [Authorize]
+    public async Task<IActionResult> GetUserNotifications()
+    {
+        var userId = User.FindFirst("id")?.Value;
+        if (userId == null) return Unauthorized();
+
+        var notifications = await _context.Notifications
+            .Where(n => n.UserId.ToString() == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .Select(n => new
+            {
+                n.Id,
+                n.Message,
+                n.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(notifications);
+    }
+
 
     [HttpGet("claim/{claimCode}")]
     [AllowAnonymous]

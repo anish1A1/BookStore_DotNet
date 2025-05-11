@@ -252,6 +252,34 @@ namespace backend.Migrations
                     b.ToTable("Inventories");
                 });
 
+            modelBuilder.Entity("backend.Model.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("backend.Model.Order", b =>
                 {
                     b.Property<Guid>("OrderId")
@@ -502,6 +530,17 @@ namespace backend.Migrations
                     b.Navigation("Book");
                 });
 
+            modelBuilder.Entity("backend.Model.Notification", b =>
+                {
+                    b.HasOne("backend.Model.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Model.Order", b =>
                 {
                     b.HasOne("backend.Model.User", "User")
@@ -612,6 +651,8 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.User", b =>
                 {
                     b.Navigation("Carts");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Orders");
 

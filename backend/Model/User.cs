@@ -32,5 +32,6 @@ public class User
         public List<Cart> Carts { get; set; } = new List<Cart>();
         public List<Order> Orders { get; set; } = new List<Order>();
         public List<Review> Reviews { get; set; } = new List<Review>();
+        public List<Notification> Notifications { get; set; } = new List<Notification>();
 
 }
