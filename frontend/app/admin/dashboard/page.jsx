@@ -4,170 +4,64 @@ import { useRouter } from "next/navigation";
 import { BarChart2Icon, PackageIcon, AlertTriangleIcon, TrendingUpIcon, BookOpenIcon, TagIcon, BellIcon, PieChartIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "../../../utils/axios";
-
-function UserManagement() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    UserName: "",
-    UserEmail: "",
-    Password: "",
-    Role: "Staff"
-  });
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
-      console.log("Fetching users from:", `${axios.defaults.baseURL}/user/getallusers`);
-      const response = await axios.get("/user/getallusers", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("Raw API response:", response.data);
-      const staffUsers = response.data.filter(user => user.role === "Staff");
-      console.log("Filtered staff users:", staffUsers);
-      setUsers(staffUsers);
-      setError(null);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      console.error("Error response:", error.response);
-      setError(error.response?.status === 404 ? "Endpoint not found. Check server configuration." : error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
-      await axios.post("/user/create", formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setShowForm(false);
-      setFormData({ UserName: "", UserEmail: "", Password: "", Role: "Staff" });
-      fetchUsers();
-      setError(null);
-    } catch (error) {
-      console.error("Error creating user:", error);
-      setError(error.response?.status === 404 ? "Endpoint not found. Check server configuration." : error.message);
-    }
-  };
-
-  if (loading) return <div>Loading users...</div>;
-
-  return (
-    <div className="mt-6 border border-gray-300 rounded-md p-4 bg-white">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-bold text-lg">Staff Management</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-gray-800 text-white rounded-md"
-        >
-          Add Staff
-        </button>
-      </div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <form onSubmit={handleFormSubmit} className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full space-y-4">
-            <h2 className="text-xl font-bold">Add New Staff</h2>
-            <div>
-              <label className="block text-sm font-medium mb-1">Username</label>
-              <input
-                type="text"
-                name="UserName"
-                value={formData.UserName}
-                onChange={handleFormChange}
-                className="w-full border p-2 rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
-                type="email"
-                name="UserEmail"
-                value={formData.UserEmail}
-                onChange={handleFormChange}
-                className="w-full border p-2 rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <input
-                type="password"
-                name="Password"
-                value={formData.Password}
-                onChange={handleFormChange}
-                className="w-full border p-2 rounded"
-                required
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gray-800 text-white rounded"
-              >
-                Create
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-3 border border-gray-300">Username</th>
-            <th className="p-3 border border-gray-300">Email</th>
-            <th className="p-3 border border-gray-300">Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length === 0 ? (
-            <tr>
-              <td colSpan="3" className="p-3 text-center text-gray-500">
-                No staff users found.
-              </td>
-            </tr>
-          ) : (
-            users.map((user) => (
-              <tr key={user.userId} className="hover:bg-gray-50">
-                <td className="p-3 border border-gray-300">{user.userName}</td>
-                <td className="p-3 border border-gray-300">{user.userEmail}</td>
-                <td className="p-3 border border-gray-300">{user.role}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+import StaffManagement from "../components/StaffManagement";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalStaff: 0,
+    totalBooks: 0,
+    totalOnSale: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token available");
+
+        // Fetch all users
+        const usersResponse = await axios.get("/user/getallusers", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const allUsers = usersResponse.data;
+
+        // Fetch all books
+        const booksResponse = await axios.get("/book", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const allBooks = booksResponse.data.books || [];
+
+        // Calculate stats
+        const totalUsers = allUsers.length;
+        const totalStaff = allUsers.filter(user => user.role === "Staff").length;
+        const totalBooks = allBooks.length;
+        const totalOnSale = allBooks.filter(book => book.isOnSale).length;
+
+        setStats({
+          totalUsers,
+          totalStaff,
+          totalBooks,
+          totalOnSale,
+        });
+        setError(null);
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+        setError(error.response?.status === 404 ? "Endpoint not found. Check server configuration." : error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
   return (
     <div className="bg-gray-100 min-h-screen p-6">
@@ -176,47 +70,47 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="border border-gray-300 rounded-md p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold">Total Sales Today</h2>
+              <h2 className="font-bold">Total Registered Users</h2>
               <div className="p-2 bg-blue-100 rounded-md">
-                <BarChart2Icon size={20} className="text-blue-600" />
+                <TrendingUpIcon size={20} className="text-blue-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold">$1,248.88</div>
-            <div className="text-sm text-green-600 mt-1">↑ 12% from yesterday</div>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <div className="text-sm text-gray-600 mt-1">All registered accounts</div>
           </div>
           <div className="border border-gray-300 rounded-md p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold">Pending Orders</h2>
+              <h2 className="font-bold">Total Staff Users</h2>
               <div className="p-2 bg-yellow-100 rounded-md">
                 <PackageIcon size={20} className="text-yellow-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold">12</div>
-            <div className="text-sm text-gray-600 mt-1">4 ready for pickup</div>
+            <div className="text-2xl font-bold">{stats.totalStaff}</div>
+            <div className="text-sm text-gray-600 mt-1">Staff members only</div>
           </div>
           <div className="border border-gray-300 rounded-md p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold">Low Stock Alerts</h2>
-              <div className="p-2 bg-red-100 rounded-md">
-                <AlertTriangleIcon size={20} className="text-red-600" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold">8</div>
-            <div className="text-sm text-red-600 mt-1">3 items out of stock</div>
-          </div>
-          <div className="border border-gray-300 rounded-md p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold">New Members</h2>
+              <h2 className="font-bold">Total Books</h2>
               <div className="p-2 bg-green-100 rounded-md">
-                <TrendingUpIcon size={20} className="text-green-600" />
+                <BookOpenIcon size={20} className="text-green-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold">24</div>
-            <div className="text-sm text-green-600 mt-1">↑ 8% this week</div>
+            <div className="text-2xl font-bold">{stats.totalBooks}</div>
+            <div className="text-sm text-gray-600 mt-1">Books in inventory</div>
+          </div>
+          <div className="border border-gray-300 rounded-md p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold">Total Books on Sale</h2>
+              <div className="p-2 bg-red-100 rounded-md">
+                <TagIcon size={20} className="text-red-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold">{stats.totalOnSale}</div>
+            <div className="text-sm text-gray-600 mt-1">Books with discounts</div>
           </div>
         </div>
         
-        <UserManagement />
+        <StaffManagement />
         <div className="mt-6 border border-gray-300 rounded-md p-4 bg-white">
           <h2 className="font-bold text-lg mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

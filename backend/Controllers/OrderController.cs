@@ -27,11 +27,8 @@ public class OrderController : ControllerBase
     private string GenerateClaimCode()
     {
         var random = new Random();
-        // Generate two uppercase letters (e.g., "BC")
         string prefix = $"{(char)('A' + random.Next(0, 26))}{(char)('A' + random.Next(0, 26))}";
-        // Generate 5 digits (e.g., "12345")
         string middle = random.Next(10000, 99999).ToString();
-        // Generate 4 digits (e.g., "6789")
         string suffix = random.Next(1000, 9999).ToString();
         return $"{prefix}-{middle}-{suffix}";
     }
@@ -49,7 +46,6 @@ public class OrderController : ControllerBase
             .ThenInclude(ci => ci.Book)
             .ThenInclude(b => b.Inventory)
             .FirstOrDefaultAsync(c => c.UserId == userId);
-            // - Finds the first cart associated with the given UserId.
 
         if (cart == null || !cart.CartItems.Any())
             return BadRequest(new { Message = "Cart is empty" });

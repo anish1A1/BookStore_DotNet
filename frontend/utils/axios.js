@@ -20,13 +20,12 @@ instance.interceptors.request.use(
     }
 );
 
-// **Response Interceptor: Handle Unauthorized Access**
 instance.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
             console.error("Unauthorized - Invalid or Expired Token");
-            localStorage.removeItem("token"); // Log out user by removing token
+            localStorage.removeItem("token");
         }
         return Promise.reject(error);
     }

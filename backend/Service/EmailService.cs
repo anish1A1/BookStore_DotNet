@@ -21,22 +21,38 @@ namespace backend.Service
             string user = smtp["Username"] ?? throw new InvalidOperationException("SMTP Username is not configured.");
             string password = smtp["Password"] ?? throw new InvalidOperationException("SMTP Password is not configured.");
 
-            string body = $"Thank you for your order!\n\nClaim Code: {claimCode}\n\nTotal: ${total}\nItems: {itemCount} books\n\nPlease provide this code to staff at the store to collect your books.";
+            string body = $"Thank you for your order!\n\nClaim Code: {claimCode}\n\nTotal: ${total}\nItems: {itemCount} books\n\n" +
+                          $"Please provide this code to staff at the BookLux Store, Putalisadak, Kathmandu to collect your books.\n\n" +
+                          $"Pickup Date: Tomorrow, 10:00 AM - 05:00 PM\nHeld for 3 days from pickup.";
 
-            using var client = new SmtpClient(host, port)
+            try
             {
-                Credentials = new NetworkCredential(user, password),
-                EnableSsl = true
-            };
-            using var message = new MailMessage(user, to)
-            {
-                Subject = "Your Book Order – Claim Code",
-                Body = body,
-                IsBodyHtml = false
-            };
+                using var client = new SmtpClient(host, port)
+                {
+                    Credentials = new NetworkCredential(user, password),
+                    EnableSsl = true
+                };
+                using var message = new MailMessage(user, to)
+                {
+                    Subject = "Your Book Order – Claim Code",
+                    Body = body,
+                    IsBodyHtml = false
+                };
 
-            await client.SendMailAsync(message);
-            Console.WriteLine($"Email sent to {to}: Claim Code - {claimCode}");
+                await client.SendMailAsync(message);
+                Console.WriteLine($"Email sent to {to}: Claim Code - {claimCode}");
+            }
+            catch (SmtpException ex)
+            {
+                Console.WriteLine($"SMTP error while sending email to {to}: {ex.Message}");
+                throw new InvalidOperationException($"Failed to send email: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error while sending email to {to}: {ex.Message}");
+                throw new InvalidOperationException($"Unexpected error while sending email: {ex.Message}", ex);
+            }
+
         }
     }
 }

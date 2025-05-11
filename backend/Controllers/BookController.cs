@@ -58,7 +58,7 @@ namespace backend.Controllers
 
         if (!string.IsNullOrEmpty(genreName))
             {
-                query = query.Where(b => b.GenreName.Contains(genreName));
+                query = query.Where(b => b.GenreName == genreName);
             }
             if (!string.IsNullOrEmpty(authorName))
             {
@@ -80,29 +80,19 @@ namespace backend.Controllers
         if (awardWinner.HasValue && awardWinner.Value) query = query.Where(b => b.IsAwardWinner == awardWinner.Value);
 
         if (!string.IsNullOrEmpty(sort))
-        {
-            switch (sort.ToLower())
             {
-                case "title":
-                    query = query.OrderBy(b => b.BookTitle);
-                    break;
-                case "author":
-                    query = query.OrderBy(b => b.AuthorName);
-                    break;
-                case "price":
-                    query = query.OrderBy(b => b.BookPrice);
-                    break;
-                case "publicationdate":
-                    query = query.OrderBy(b => b.PublicationDate);
-                    break;
-                case "popularity": 
-                    query = query.OrderByDescending(b => b.TotalSales); 
-                    break;
-                default:
-                    query = query.OrderBy(b => b.CreatedAt);
-                    break;
+                query = sort.ToLower() switch
+                {
+                    "title_asc" => query.OrderBy(b => b.BookTitle),
+                    "title_desc" => query.OrderByDescending(b => b.BookTitle),
+                    "author" => query.OrderBy(b => b.AuthorName),
+                    "price_asc" => query.OrderBy(b => b.BookPrice),
+                    "price_desc" => query.OrderByDescending(b => b.BookPrice),
+                    "publicationdate" => query.OrderBy(b => b.PublicationDate),
+                    "popularity" => query.OrderByDescending(b => b.TotalSales),
+                    _ => query.OrderBy(b => b.CreatedAt),
+                };
             }
-        }
         else
         {
             query = query.OrderBy(b => b.CreatedAt);

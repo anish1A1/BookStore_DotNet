@@ -95,9 +95,9 @@ export default function LoginPage() {
             </button>
           </form>
           <p className="text-sm text-gray-600 text-center mt-4">
-            Are you not a user?{" "}
-            <Link href="/register" className="text-[#2C3F51] hover:underline">
-              Register
+            Continue shopping? {" "}
+            <Link href="/" className="text-[#9c0000] hover:underline">
+              BookLux
             </Link>
           </p>
         </div>

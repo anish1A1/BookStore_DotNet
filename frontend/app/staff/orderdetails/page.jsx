@@ -23,9 +23,9 @@ export default function StaffOrderDetail() {
       setLoading(true);
       try {
         const response = await axios.get(`/order/claim/${claimCode}`);
-        const orderData = response.data;
-        if (orderData && !orderData.User) {
-          // Fallback: Fetch user data if not included
+        let orderData = response.data;
+
+        if (!orderData.User) {
           const userResponse = await axios.get(`/user/${orderData.UserId}`);
           orderData.User = userResponse.data;
         }
@@ -38,6 +38,58 @@ export default function StaffOrderDetail() {
     };
     fetchOrder();
   }, [claimCode]);
+
+  const handleFulfillOrder = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token available");
+
+      await axios.put(`/order/${order.OrderId}/fulfill`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Refetch the order to get the updated status
+      const response = await axios.get(`/order/claim/${claimCode}`);
+      let updatedOrder = response.data;
+      if (!updatedOrder.User) {
+        const userResponse = await axios.get(`/user/${updatedOrder.UserId}`);
+        updatedOrder.User = userResponse.data;
+      }
+      setOrder(updatedOrder);
+      setShowConfirmation(true);
+    } catch (error) {
+      console.error("Error fulfilling order:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token available");
+
+      await axios.put(`/order/${order.OrderId}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Refetch the order to get the updated status
+      const response = await axios.get(`/order/claim/${claimCode}`);
+      let updatedOrder = response.data;
+      if (!updatedOrder.User) {
+        const userResponse = await axios.get(`/user/${updatedOrder.UserId}`);
+        updatedOrder.User = userResponse.data;
+      }
+      setOrder(updatedOrder);
+      setShowConfirmation(true);
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) return <div className="bg-gray-100 min-h-screen p-6">Loading...</div>;
   if (!order) return <div className="bg-gray-100 min-h-screen p-6">Order not found</div>;
@@ -60,7 +112,11 @@ export default function StaffOrderDetail() {
                 <h1 className="text-2xl font-bold">Order #{order.OrderId}</h1>
                 <div className="text-gray-600">{new Date(order.OrderDate).toLocaleString()}</div>
               </div>
-              <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm">
+              <div className={`px-3 py-1 rounded text-sm ${
+                order.Status === "Fulfilled" ? "bg-green-100 text-green-800" :
+                order.Status === "Cancelled" ? "bg-red-100 text-red-800" :
+                "bg-yellow-100 text-yellow-800"
+              }`}>
                 {order.Status}
               </div>
             </div>
@@ -125,7 +181,11 @@ export default function StaffOrderDetail() {
               <h2 className="font-bold text-lg mb-4">Order Actions</h2>
               <div>
                 <div className="text-sm text-gray-500 mb-1">Current Status</div>
-                <div className="px-3 py-1 bg-yellow-100 text-yellow-800 inline-block rounded">
+                <div className={`px-3 py-1 rounded text-sm ${
+                  order.Status === "Fulfilled" ? "bg-green-100 text-green-800" :
+                  order.Status === "Cancelled" ? "bg-red-100 text-red-800" :
+                  "bg-yellow-100 text-yellow-800"
+                }`}>
                   {order.Status}
                 </div>
               </div>
@@ -137,17 +197,29 @@ export default function StaffOrderDetail() {
                 />
               </div>
               <div className="space-y-3">
-                <button
-                  onClick={() => setShowConfirmation(true)}
-                  className="w-full px-4 py-2 bg-gray-800 text-white rounded-md"
-                >
-                  Mark as Fulfilled
-                </button>
+                {order.Status === "Pending" && (
+                  <>
+                    <button
+                      onClick={handleFulfillOrder}
+                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-md"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Mark as Fulfilled"}
+                    </button>
+                    <button
+                      onClick={handleCancelOrder}
+                      className="w-full px-4 py-2 bg-red-600 text-white rounded-md"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Cancel Order"}
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => router.push("/staff/orders")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 >
-                  Print Order Details
+                  Return to Orders
                 </button>
                 <button className="w-full px-4 py-2 border border-gray-300 rounded-md">
                   Contact Customer
@@ -158,8 +230,8 @@ export default function StaffOrderDetail() {
                 <div className="space-y-3">
                   {[
                     { label: "Order Placed", date: new Date(order.OrderDate).toLocaleString(), completed: true },
-                    { label: "Ready for Pickup", date: order.Status === "Fulfilled" ? "Completed" : "Pending", completed: order.Status === "Fulfilled" },
-                    { label: "Completed", date: "Pending", completed: false },
+                    { label: "Ready for Pickup", date: order.Status === "Fulfilled" ? new Date().toLocaleString() : order.Status === "Cancelled" ? "Cancelled" : "Pending", completed: order.Status === "Fulfilled" },
+                    { label: "Completed", date: order.Status === "Fulfilled" ? "Pending" : "Not Applicable", completed: false },
                   ].map((t, idx) => (
                     <div key={idx} className="flex items-start gap-2">
                       <div
@@ -180,9 +252,9 @@ export default function StaffOrderDetail() {
         {showConfirmation && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Order Fulfilled</h2>
+              <h2 className="text-xl font-bold mb-4">Order Action Completed</h2>
               <p className="mb-6">
-                Order #{order.OrderId} has been marked as fulfilled and is now ready for pickup. An email notification has been sent to the customer.
+                Order #{order.OrderId} has been marked as {order.Status.toLowerCase()}. An email notification has been sent to the customer.
               </p>
               <div className="flex justify-end gap-3">
                 <button
@@ -192,10 +264,7 @@ export default function StaffOrderDetail() {
                   Close
                 </button>
                 <button
-                  onClick={() => {
-                    setShowConfirmation(false);
-                    router.push("/staff/orders");
-                  }}
+                  onClick={() => router.push("/staff/orders")}
                   className="px-4 py-2 bg-gray-800 text-white rounded-md"
                 >
                   Return to Orders

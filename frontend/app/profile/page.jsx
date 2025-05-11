@@ -11,11 +11,13 @@ import {
   SettingsIcon,
   UserIcon,
   LogOutIcon,
+  BookIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AuthContext } from "../../utils/auth";
 import ProfileOrders from "./ProfileOrders";
 import WishlistPage from "../wishlist/page";
+import Catalog from "../catalog/page";
 import ProfileOrderReviews from "./ProfileOrderReview";
 
 export default function DashboardPage() {
@@ -218,6 +220,9 @@ export default function DashboardPage() {
       case "reviews":
         return <ProfileOrderReviews />;
 
+      case "catalog":
+        return <Catalog/>
+
       case "settings":
         return (
           <div>
@@ -358,6 +363,7 @@ export default function DashboardPage() {
                   { key: "orders", icon: ShoppingBagIcon, label: "Orders" },
                   { key: "wishlist", icon: BookmarkIcon, label: "Wishlist" },
                   { key: "reviews", icon: StarIcon, label: "Reviews" },
+                  { key: "catalog", icon: BookIcon, label: "Collections" },
                   { key: "settings", icon: SettingsIcon, label: "Settings" },
                 ].map(({ key, icon: Icon, label }) => (
                   <button

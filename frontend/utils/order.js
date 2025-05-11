@@ -262,11 +262,11 @@ export const OrderProvider =({children}) => {
         try {
           setLoading(true);
           console.log("Placing order:", { email, cartItems });
-          const response = await axios.post('/order', { email, cartItems, TotalAmount }, {
+          const response = await axios.post('/order', { TotalAmount }, {
             headers: { Authorization: `Bearer ${token}` },
           });
           await fetchCart(); // Clear cart after successful order
-          return { status: 'success', message: response.data.message || 'Order placed successfully' };
+          return response.data;
         } catch (error) {
           const errorMessage = error.response?.data?.Message || 'Error placing order';
           console.error('Place order error:', errorMessage, error.response?.data);

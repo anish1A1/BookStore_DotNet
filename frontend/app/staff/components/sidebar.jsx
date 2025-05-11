@@ -24,11 +24,6 @@ export default function Sidebar() {
       icon: <LayoutDashboardIcon size={20} />,
     },
     {
-      href: "/staff/order",
-      label: "Orders",
-      icon: <ClipboardListIcon size={20} />,
-    },
-    {
       href: "/staff/orderdetails",
       label: "Order Details",
       icon: < BookOpenIcon size={20} />,

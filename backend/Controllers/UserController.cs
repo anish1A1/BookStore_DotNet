@@ -42,6 +42,7 @@ namespace backend.Controllers
                 PhoneNumber = createUserDto.PhoneNumber,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
                 Role = createUserDto.Role,
+                ProfileImage = "", 
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -305,6 +306,34 @@ namespace backend.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            // Prevent deleting admin users
+            if (user.Role == "Admin")
+            {
+                return BadRequest(new { Message = "Cannot delete an admin user." });
+            }
+
+            try
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Error deleting user", Details = ex.Message });
+            }
         }
 
         private bool UserExists(Guid id)

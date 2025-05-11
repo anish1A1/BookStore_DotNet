@@ -9,15 +9,14 @@ import { toast } from "sonner";
 export default function CheckoutPage() {
   const { cartWhole, placeOrder, fetchCartWhole } = useContext(OrderContext);
   const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(()=> {
+  useEffect(() => {
     fetchCartWhole();
   }, []);
+
   const next = () => setStep((s) => Math.min(s + 1, 3));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
-
 
   const subtotal = (cartWhole?.cartItems || []).reduce((sum, item) => {
     const price = typeof item.book?.discountedPrice === 'number' && item.book.discountedPrice > 0 
@@ -26,36 +25,30 @@ export default function CheckoutPage() {
     return sum + price * item.quantity;
   }, 0);
 
-
   const totalBooks = (cartWhole?.cartItems || []).reduce((sum, item) => sum + item.quantity, 0);
 
   const orderCount = cartWhole?.orderCount || 0;
   let discountAmount = 0;
   let discountPercent = 0;
-    if (totalBooks >= 5) {
-      discountAmount = 5;
-      discountPercent += 5;
-    }
-    if (orderCount >= 10) {
-      discountPercent += 10;
-    }
+  if (totalBooks >= 5) {
+    discountAmount = 5;
+    discountPercent += 5;
+  }
+  if (orderCount >= 10) {
+    discountPercent += 10;
+  }
   const discount = parseFloat((subtotal * (discountPercent / 100)).toFixed(2));
   const total = parseFloat((subtotal - discount).toFixed(2));
 
   const handleCompleteOrder = async () => {
     setLoading(true);
     try {
-      if(!email) {
-        toast.error('Please enter your email');
-      }
       const response = await placeOrder({
-        email,
-        cartItems : cartWhole?.cartItems || [],
-        TotalAmount : total
+        TotalAmount: total
       });
       
       toast.success("Order placed successfully! Check your email for the claim code.");
-      console.log("Order placed successfully:", response.data);
+      console.log("Order placed successfully:", response);
       setStep(3); // Move to confirmation step
     } catch (error) {
       toast.error(error?.Message || "Failed to place order");
@@ -111,19 +104,11 @@ export default function CheckoutPage() {
               <h2 className="text-2xl font-bold mb-6">Pickup Location & Date</h2>
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2">Location</label>
-                <select className="w-full border rounded p-3">
-                  <option>Main Store – 123 Literary Lane</option>
-                  <option>Downtown – 456 Reader’s Ave</option>
-                  <option>University – 789 Scholar St</option>
-                </select>
+                <p className="border rounded p-3">BookLux Store, Putalisadak, Kathmandu</p>
               </div>
               <div className="mb-8">
                 <label className="block text-gray-700 mb-2">Date</label>
-                <select className="w-full border rounded p-3">
-                  <option>Tomorrow, July 15 (10 AM)</option>
-                  <option>July 16 (10 AM)</option>
-                  <option>July 17 (10 AM)</option>
-                </select>
+                <p className="border rounded p-3">Tomorrow, 10:00 AM - 05:00 PM</p>
                 <p className="text-sm text-gray-500 mt-2">
                   Held for 3 days from pickup.
                 </p>
@@ -144,13 +129,12 @@ export default function CheckoutPage() {
               <h2 className="text-2xl font-bold mb-6">Review Order</h2>
               <div className="bg-gray-50 p-4 rounded mb-6">
                 <h3 className="font-bold mb-2">Pickup</h3>
-                <p>Main Store – 123 Literary Lane</p>
-                <p>Tomorrow, July 15 (10 AM)</p>
+                <p>BookLux Store, Putalisadak, Kathmandu</p>
+                <p>Tomorrow, 10:00 AM - 05:00 PM</p>
               </div>
               <div className="border-b pb-4 mb-4">
-              <h3 className="font-bold mb-4">Items ({cartWhole?.cartItems?.length || 0})</h3>
-
-              {cartWhole?.cartItems?.map((item, i) => (
+                <h3 className="font-bold mb-4">Items ({cartWhole?.cartItems?.length || 0})</h3>
+                {cartWhole?.cartItems?.map((item, i) => (
                   <div key={item.cartItemId} className="flex items-center mb-4">
                     <div className="flex-grow">
                       <h4 className="font-bold">{item.book?.bookTitle}</h4>
@@ -161,7 +145,6 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 ))}
-
               </div>
               <div className="mb-6 space-y-2">
                 <div className="flex justify-between">
@@ -175,26 +158,15 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 {orderCount >= 10 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Loyalty Discount (10%)</span>
-                      <span>-Rs. {(subtotal * 0.10).toFixed(2)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-green-600">
+                    <span>Loyalty Discount (10%)</span>
+                    <span>-Rs. {(subtotal * 0.10).toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
-              </div>
-              <div className="mb-8">
-                <label className="block text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  className="w-full border rounded p-3"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
               </div>
               <div className="flex justify-between">
                 <button
@@ -205,7 +177,7 @@ export default function CheckoutPage() {
                 </button>
                 <button
                   onClick={handleCompleteOrder}
-                  disabled={loading || !email}
+                  disabled={loading}
                   className="bg-[#E3B23C] hover:bg-[#d1a436] text-white px-8 py-3 rounded font-bold"
                 >
                   {loading ? "Processing..." : "Complete Order"}
