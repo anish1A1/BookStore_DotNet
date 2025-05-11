@@ -1,278 +1,201 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "../../../utils/axios";
 
 export default function StaffOrderDetail() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const claimCode = searchParams.get("claimCode");
-  const [order, setOrder] = useState(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [filteredHistory, setFilteredHistory] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // For username search
+  const [claimCodeSearch, setClaimCodeSearch] = useState(""); // For claim code search
+  const [statusFilter, setStatusFilter] = useState("All"); // For status filter
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch order history from backend
   useEffect(() => {
-    if (!claimCode) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchOrder = async () => {
+    const fetchOrderHistory = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get(`/order/claim/${claimCode}`);
-        let orderData = response.data;
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token available");
 
-        if (!orderData.User) {
-          const userResponse = await axios.get(`/user/${orderData.UserId}`);
-          orderData.User = userResponse.data;
-        }
-        setOrder(orderData);
+        const response = await axios.get("/order/staff/history", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("Order history received:", response.data); // Debug log
+        setOrderHistory(response.data);
+        setFilteredHistory(response.data); // Initialize filtered history
       } catch (error) {
-        console.error("Error fetching order:", error);
+        console.error("Error fetching order history:", error.response?.data || error.message);
+        setError(`Failed to fetch order history: ${error.response?.data?.Message || error.message}`);
       } finally {
         setLoading(false);
       }
     };
-    fetchOrder();
-  }, [claimCode]);
+    fetchOrderHistory();
+  }, []);
 
-  const handleFulfillOrder = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
+  // Filter history by username, claim code, and status
+  useEffect(() => {
+    let filtered = orderHistory;
 
-      await axios.put(`/order/${order.OrderId}/fulfill`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // Refetch the order to get the updated status
-      const response = await axios.get(`/order/claim/${claimCode}`);
-      let updatedOrder = response.data;
-      if (!updatedOrder.User) {
-        const userResponse = await axios.get(`/user/${updatedOrder.UserId}`);
-        updatedOrder.User = userResponse.data;
-      }
-      setOrder(updatedOrder);
-      setShowConfirmation(true);
-    } catch (error) {
-      console.error("Error fulfilling order:", error);
-    } finally {
-      setLoading(false);
+    // Filter by username
+    if (searchTerm) {
+      filtered = filtered.filter((entry) =>
+        (entry.user?.userName || "Unknown")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
     }
-  };
 
-  const handleCancelOrder = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token available");
-
-      await axios.put(`/order/${order.OrderId}/cancel`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // Refetch the order to get the updated status
-      const response = await axios.get(`/order/claim/${claimCode}`);
-      let updatedOrder = response.data;
-      if (!updatedOrder.User) {
-        const userResponse = await axios.get(`/user/${updatedOrder.UserId}`);
-        updatedOrder.User = userResponse.data;
-      }
-      setOrder(updatedOrder);
-      setShowConfirmation(true);
-    } catch (error) {
-      console.error("Error cancelling order:", error);
-    } finally {
-      setLoading(false);
+    // Filter by claim code
+    if (claimCodeSearch) {
+      filtered = filtered.filter((entry) =>
+        entry.claimCode.toLowerCase().includes(claimCodeSearch.toLowerCase())
+      );
     }
+
+    // Filter by status
+    if (statusFilter !== "All") {
+      filtered = filtered.filter((entry) => entry.status === statusFilter);
+    }
+
+    setFilteredHistory(filtered);
+  }, [searchTerm, claimCodeSearch, statusFilter, orderHistory]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setClaimCodeSearch("");
+    setStatusFilter("All");
   };
 
   if (loading) return <div className="bg-gray-100 min-h-screen p-6">Loading...</div>;
-  if (!order) return <div className="bg-gray-100 min-h-screen p-6">Order not found</div>;
+  if (error) return <div className="bg-gray-100 min-h-screen p-6 text-red-600">{error}</div>;
 
   return (
     <div className="bg-gray-100 min-h-screen p-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-300 space-y-6 max-w-4xl mx-auto">
         <div className="mb-4 text-sm">
-          <Link href="/staff/orders" className="text-gray-600 hover:underline">
-            Pending Orders
+          <Link href="/staff/dashboard" className="text-gray-600 hover:underline">
+            Claim Orders
           </Link>
           <span className="mx-2"></span>
-          <span>Order #{order.OrderId}</span>
+          <span>Orders History</span>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-2/3 space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-bold">Order #{order.OrderId}</h1>
-                <div className="text-gray-600">{new Date(order.OrderDate).toLocaleString()}</div>
-              </div>
-              <div className={`px-3 py-1 rounded text-sm ${
-                order.Status === "Fulfilled" ? "bg-green-100 text-green-800" :
-                order.Status === "Cancelled" ? "bg-red-100 text-red-800" :
-                "bg-yellow-100 text-yellow-800"
-              }`}>
-                {order.Status}
-              </div>
-            </div>
+        <div className="flex flex-col gap-6">
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold">Order History</h1>
 
-            <div className="bg-gray-100 p-4 rounded-md">
-              <div className="text-sm mb-1">Claim code</div>
-              <div className="text-xl font-bold tracking-wider">
-                {order.ClaimCode}
-              </div>
-            </div>
-
-            <div className="border border-gray-300 rounded-md p-4">
-              <h2 className="font-bold text-lg mb-3">Customer Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  ["Name", order.User?.UserName || "Unknown"],
-                  ["Email", order.User?.UserEmail || "Unknown"],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <div className="text-sm text-gray-500">{label}</div>
-                    <div>{value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border border-gray-300 rounded-md p-4 space-y-4">
-              <h2 className="font-bold text-lg mb-4">Order Items</h2>
-              <div className="space-y-4">
-                {order.OrderItems.map((item, i) => (
-                  <div key={i} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0">
-                    <div className="w-16">
-                      <img
-                        src={`https://picsum.photos/seed/book${i}/80/120`}
-                        alt={item.Book.BookTitle}
-                        className="w-full h-20 object-cover rounded"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold">{item.Book.BookTitle}</h3>
-                      <div className="text-sm text-gray-600">{item.Book.AuthorName}</div>
-                      <div className="text-sm text-gray-600">ISBN: {item.Book.ISBN}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">${item.UnitPrice.toFixed(2)}</div>
-                      <div className="text-sm text-gray-600">Qty: {item.Quantity}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
-                <div className="flex justify-between">Subtotal <span>${order.TotalAmount.toFixed(2)}</span></div>
-                <div className="flex justify-between font-bold mt-2 pt-2 border-t border-gray-200">
-                  Total <span>${order.TotalAmount.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:w-1/3">
-            <div className="border border-gray-300 rounded-md p-4 space-y-4">
-              <h2 className="font-bold text-lg mb-4">Order Actions</h2>
-              <div>
-                <div className="text-sm text-gray-500 mb-1">Current Status</div>
-                <div className={`px-3 py-1 rounded text-sm ${
-                  order.Status === "Fulfilled" ? "bg-green-100 text-green-800" :
-                  order.Status === "Cancelled" ? "bg-red-100 text-red-800" :
-                  "bg-yellow-100 text-yellow-800"
-                }`}>
-                  {order.Status}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Staff Notes</label>
-                <textarea
-                  className="w-full p-2 border border-gray-300 rounded h-24"
-                  placeholder="Add notes about this order..."
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* Username Search */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  placeholder="Filter by username..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full max-w-md p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800"
                 />
               </div>
-              <div className="space-y-3">
-                {order.Status === "Pending" && (
-                  <>
-                    <button
-                      onClick={handleFulfillOrder}
-                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-md"
-                      disabled={loading}
-                    >
-                      {loading ? "Processing..." : "Mark as Fulfilled"}
-                    </button>
-                    <button
-                      onClick={handleCancelOrder}
-                      className="w-full px-4 py-2 bg-red-600 text-white rounded-md"
-                      disabled={loading}
-                    >
-                      {loading ? "Processing..." : "Cancel Order"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => router.push("/staff/orders")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+
+              {/* Claim Code Search */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  placeholder="Search by claim code..."
+                  value={claimCodeSearch}
+                  onChange={(e) => setClaimCodeSearch(e.target.value)}
+                  className="w-full max-w-md p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800"
                 >
-                  Return to Orders
-                </button>
-                <button className="w-full px-4 py-2 border border-gray-300 rounded-md">
-                  Contact Customer
-                </button>
+                  <option value="All">All Status</option>
+                  <option value="Fulfilled">Fulfilled</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <h3 className="font-bold text-lg mb-3">Order Timeline</h3>
-                <div className="space-y-3">
-                  {[
-                    { label: "Order Placed", date: new Date(order.OrderDate).toLocaleString(), completed: true },
-                    { label: "Ready for Pickup", date: order.Status === "Fulfilled" ? new Date().toLocaleString() : order.Status === "Cancelled" ? "Cancelled" : "Pending", completed: order.Status === "Fulfilled" },
-                    { label: "Completed", date: order.Status === "Fulfilled" ? "Pending" : "Not Applicable", completed: false },
-                  ].map((t, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <div
-                        className={`w-4 h-4 rounded-full mt-1 ${t.completed ? "bg-gray-800" : "bg-gray-300"}`}
-                      ></div>
-                      <div>
-                        <div className={t.completed ? "" : "text-gray-400"}>{t.label}</div>
-                        <div className="text-xs text-gray-500">{t.date}</div>
-                      </div>
-                    </div>
-                  ))}
+
+              {/* Clear Filters Button */}
+              {(searchTerm || claimCodeSearch || statusFilter !== "All") && (
+                <button
+                  onClick={clearFilters}
+                  className="text-gray-600 hover:text-gray-800 underline"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+
+            {/* History List */}
+            <div className="border border-gray-300 rounded-md p-4 space-y-4">
+              <h2 className="font-bold text-lg mb-4">Orders Processed by Staff</h2>
+              {filteredHistory.length === 0 ? (
+                <div className="text-gray-500">
+                  {searchTerm || claimCodeSearch || statusFilter !== "All"
+                    ? "No orders found matching the filters."
+                    : "No orders have been claimed or canceled yet."}
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredHistory.map((entry, idx) => {
+                    const bookDetails = entry.orderItems
+                      .map((item) => `${item.book.bookTitle} (Qty: ${item.quantity})`)
+                      .join(", ");
+                    return (
+                      <div
+                        key={idx}
+                        className="border border-gray-200 rounded-md p-4 bg-gray-50 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div
+                            className={`w-4 h-4 rounded-full ${
+                              entry.status === "Fulfilled"
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            }`}
+                          ></div>
+                          <h3 className="font-semibold text-lg">
+                            {entry.status}
+                          </h3>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>
+                            <span className="font-medium">User:</span>{" "}
+                            {entry.user?.userName || "Unknown"}
+                          </p>
+                          <p>
+                            <span className="font-medium">Claim Code:</span>{" "}
+                            {entry.claimCode}
+                          </p>
+                          <p>
+                            <span className="font-medium">Books:</span>{" "}
+                            {bookDetails}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {showConfirmation && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Order Action Completed</h2>
-              <p className="mb-6">
-                Order #{order.OrderId} has been marked as {order.Status.toLowerCase()}. An email notification has been sent to the customer.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowConfirmation(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => router.push("/staff/orders")}
-                  className="px-4 py-2 bg-gray-800 text-white rounded-md"
-                >
-                  Return to Orders
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -18,11 +18,11 @@ export default function CheckAuth() {
         if (userRole === "Admin") {
           router.push('/admin/dashboard');
         } else if (userRole === "Staff") {
-          router.push('/staff/dashboard');
+            router.push('/staff/dashboard');
         } else if (userRole === "Member") {
-          router.push('/profile');
+            router.push('/');
         } else {
-          router.push('/login');
+            router.push('/login');
         }
       } catch (err) {
         console.error('Invalid token on root route:', err);

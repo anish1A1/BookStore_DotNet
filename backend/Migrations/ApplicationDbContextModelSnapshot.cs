@@ -322,6 +322,34 @@ namespace backend.Migrations
                     b.ToTable("Orders");
                 });
 
+            modelBuilder.Entity("backend.Model.OrderAction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ActionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("OrderActions");
+                });
+
             modelBuilder.Entity("backend.Model.OrderItem", b =>
                 {
                     b.Property<Guid>("OrderItemId")
@@ -552,6 +580,25 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("backend.Model.OrderAction", b =>
+                {
+                    b.HasOne("backend.Model.Order", "Order")
+                        .WithMany("OrderActions")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.User", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("backend.Model.OrderItem", b =>
                 {
                     b.HasOne("backend.Model.Book", "Book")
@@ -642,6 +689,8 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.Order", b =>
                 {
                     b.Navigation("Broadcasts");
+
+                    b.Navigation("OrderActions");
 
                     b.Navigation("OrderItems");
 

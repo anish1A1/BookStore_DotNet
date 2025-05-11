@@ -39,17 +39,35 @@ builder.Services.AddAuthentication(options =>
 
         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationhub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+    });
 
 
 //For Next JS frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextJs", builder =>
+    options.AddPolicy("AllowNextJs", policy =>
     {
-        builder.WithOrigins("http://localhost:3000")
+        policy.WithOrigins("http://localhost:3000")
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials();
@@ -70,8 +88,6 @@ builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -79,15 +95,16 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
+app.UseHttpsRedirection();
+
 app.UseCors("AllowNextJs"); //Next JS CORS policy
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.MapControllers();
-
 app.MapHub<NotificationHub>("/notificationhub");
 
+app.MapControllers();
 
 app.Run();

@@ -19,4 +19,5 @@ public class Order
     public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public List<Review> Reviews { get; set; } = new List<Review>();
     public List<Broadcast> Broadcasts { get; set; } = new List<Broadcast>();
+    public List<OrderAction> OrderActions { get; set; } = new List<OrderAction>();
 }

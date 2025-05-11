@@ -276,10 +276,26 @@ export const OrderProvider =({children}) => {
         }
       };
 
+    
+    const cancelOrderAsStaff = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.put(`/order/staff/${id}/cancel`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return { status: 'success', message: 'Order canceled successfully by staff' };
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Error canceling order as staff';
+        console.error('Error canceling order as staff', errorMessage);
+        throw error?.response?.data;
+    } finally {
+        setLoading(false);
+    }
+    };
+
       
-
-
-
     const values = useMemo(() => ({
         orders,
         orderById,
@@ -299,8 +315,8 @@ export const OrderProvider =({children}) => {
         placeOrder,
         fetchCartWhole,
         cancelOrder,
+        cancelOrderAsStaff,
         fulfillOrder,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [orders, cartItems, wishlists, orderById, loading, cartWhole]);
 
     return (

@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     
     public DbSet<Discount> Discounts { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<OrderAction> OrderActions { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Wishlist>()
@@ -113,11 +114,20 @@ public class ApplicationDbContext : DbContext
             .Property(r => r.Rating)
             .HasPrecision(3, 1);
 
-            modelBuilder.Entity<Discount>()
+        modelBuilder.Entity<OrderAction>()
+            .HasOne(oa => oa.Order)
+            .WithMany(o => o.OrderActions)
+            .HasForeignKey(oa => oa.OrderId);
+
+        modelBuilder.Entity<OrderAction>()
+            .HasOne(oa => oa.Staff)
+            .WithMany()
+            .HasForeignKey(oa => oa.StaffId);
+
+        modelBuilder.Entity<Discount>()
             .HasOne(d => d.Book)
             .WithMany(b => b.Discounts)
             .HasForeignKey(d=> d.BookId)
             .OnDelete(DeleteBehavior.Cascade);   // Automatically remove discounts when book is deleted
-
     }
 }

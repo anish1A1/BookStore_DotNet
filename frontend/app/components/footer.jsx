@@ -26,17 +26,17 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="hover:text-[#0062C4]">
+              <Link href="/about" className="hover:text-[#0062C4]">
                 Contact
               </Link>
             </li>
             <li>
-              <Link href="/faq" className="hover:text-[#0062C4]">
+              <Link href="/" className="hover:text-[#0062C4]">
                 FAQ
               </Link>
             </li>
             <li>
-              <Link href="/terms" className="hover:text-[#0062C4]">
+              <Link href="/" className="hover:text-[#0062C4]">
                 Terms & Privacy
               </Link>
             </li>
@@ -48,18 +48,8 @@ export default function Footer() {
           <h3 className="text-xl font-semibold mb-4">Customer Support</h3>
           <ul className="space-y-2">
             <li>
-              <Link href="/help-center" className="hover:text-[#0062C4]">
+              <Link href="/about" className="hover:text-[#0062C4]">
                 Help Center
-              </Link>
-            </li>
-            <li>
-              <Link href="/order-status" className="hover:text-[#0062C4]">
-                Order Status
-              </Link>
-            </li>
-            <li>
-              <Link href="/returns" className="hover:text-[#0062C4]">
-                Returns & Refunds
               </Link>
             </li>
           </ul>

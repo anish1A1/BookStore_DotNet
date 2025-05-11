@@ -89,7 +89,7 @@ export default function StaffDashboardPage() {
   const [messageColor, setMessageColor] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
-  const {fulfillOrder, cancelOrder} = useContext(OrderContext);
+  const {fulfillOrder, cancelOrderAsStaff} = useContext(OrderContext);
   const handleSearch = async (e) => {
     e.preventDefault();
     const lookup = code.trim().toUpperCase();
@@ -98,7 +98,7 @@ export default function StaffDashboardPage() {
     setLoading(true);
 
     if (!lookup) {
-      setMessage("❌ Please enter a claim code.");
+      setMessage("Please enter a claim code.");
       setMessageColor("text-red-600");
       setLoading(false);
       return;
@@ -127,7 +127,7 @@ export default function StaffDashboardPage() {
       });
       
     } catch (error) {
-      setMessage("❌ Invalid claim code or no token available.");
+      setMessage("Invalid claim code or no token available.");
       setMessageColor("text-red-600");
       console.error("Search error:", error);
     } finally {
@@ -140,11 +140,11 @@ export default function StaffDashboardPage() {
   
     try {
       const response = await fulfillOrder(selectedOrder.id);
-      toast.success("✅ Order fulfilled successfully.");
-      setMessage("✅ Order fulfilled successfully.");
+      toast.success("Order fulfilled successfully.");
+      setMessage("Order fulfilled successfully.");
       setMessageColor("text-green-600");
     } catch (error) {
-      toast.error(error?.message || "❌ Failed to fulfill order.");
+      toast.error(error?.message || "Failed to fulfill order.");
       console.error(error);
     }
   };
@@ -153,12 +153,12 @@ export default function StaffDashboardPage() {
     if (!selectedOrder?.id) return;
   
     try {
-      const response = await cancelOrder(selectedOrder.id);
-      toast("⚠️ Order has been cancelled.");
-      setMessage("⚠️ Order has been cancelled.");
+      const response = await cancelOrderAsStaff(selectedOrder.id);
+      toast("Order has been cancelled.");
+      setMessage("Order has been cancelled.");
       setMessageColor("text-red-600");
     } catch (error) {
-      toast.error(error?.message || "❌ Failed to cancel order.");
+      toast.error(error?.message || "Failed to cancel order.");
       console.error(error);
     }
   };

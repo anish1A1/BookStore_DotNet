@@ -6,38 +6,38 @@ import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 const timeline = [
-  { year: "2025", event: "BookLux founded in a Dharan loft" },
-  { year: "2025", event: "Shipped 1,000th book internationally" },
-  { year: "2025", event: "Launched Curator’s Box subscription" },
+  { year: "2023", event: "BookLux founded in Itahari International College" },
+  { year: "2023", event: "Shipped 1,000th book internationally" },
+  { year: "2024", event: "Launched Curator’s Box subscription" },
   { year: "2025", event: "Opened pop-up bookstore in Ithahari" },
 ];
 
 const team = [
   {
     name: "James Shrestha",
-    role: "Frontend,Backend Developer & UI/Ux Designer",
-    img: "https://scontent.fjkr1-1.fna.fbcdn.net/v/t39.30808-6/480279133_679768504377427_305959478652547150_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=gUNBTfXqZx4Q7kNvwGl7dFf&_nc_oc=AdkSH87gkscwo3gq_nEbsPF1zG3jOc43mo2tU_rgY-LDg0kJ_ss5lBmDaBls9bhngd8&_nc_zt=23&_nc_ht=scontent.fjkr1-1.fna&_nc_gid=MWrgZyhVRfmNkBTm0sleyQ&oh=00_AfFzhKpAlXR0TaQ5HoGr_9p6pcOKlIWrsb6jkokTq2agIA&oe=68191957",
+    role: "Frontend Developer & UI/Ux Designer",
+    img: "https://static.deltiasgaming.com/2025/01/Blue-Lock-1.jpg",
   },
   {
     name: "Anish Jaiswal",
-    role: "Frontend & Backend Developer",
-    img: "https://scontent.fjkr1-1.fna.fbcdn.net/v/t39.30808-1/358633294_922879958811877_360171551869024495_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=108&ccb=1-7&_nc_sid=e99d92&_nc_ohc=nFbYjF9jHtoQ7kNvwHkvUXh&_nc_oc=AdmdX27E5tRw0ZEZXEQzAhyn9pFrhz5sNT2qxgx_Xzo85Tm1z3BHuHePDfYDqolWIq0&_nc_zt=24&_nc_ht=scontent.fjkr1-1.fna&_nc_gid=0n4JdYvLDzUYjzNffyehvg&oh=00_AfFMrExt4mPazSvu0HdnqukJAidyXHaVe690PhKrwoPmYg&oe=6819176C",
+    role: "Backend Developer",
+    img: "https://www.shutterstock.com/image-illustration/this-meguru-bachira-blue-lock-600nw-2224055983.jpg",
+  },
+  {
+    name: "Pramesh Katuwal",
+    role: "Full Stack Developer",
+    img: "https://i.pinimg.com/736x/c4/42/56/c4425643ddf5cd6924528d029eb56b62.jpg",
   },
   {
     name: "Arjun Jung Rana",
-    role: "Backend Developer & Database designer,",
-    img: "https://scontent.fjkr1-1.fna.fbcdn.net/v/t39.30808-1/381240115_1490514911771588_1013657100644636504_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=110&ccb=1-7&_nc_sid=e99d92&_nc_ohc=1OUsYc95p28Q7kNvwEpvmiV&_nc_oc=AdnpiD7eU_aYj2YRnkWw9O-hWfkcT93A6XtwrWcWcxfpDA5sKeO94V0pj-tOEovS2lU&_nc_zt=24&_nc_ht=scontent.fjkr1-1.fna&_nc_gid=pQmS27YJLJ40j4CKpuRmPA&oh=00_AfG8bouQD9Q4xPwZsNkUisp1bdo4xSl2TqaGhAQMvfu4LQ&oe=6818ED52",
-  },
-  {
-    name: "Biraj Acharya",
-    role: "Database designer, Backend Developer & frontend Developer",
-    img: "https://scontent.fjkr1-1.fna.fbcdn.net/v/t39.30808-1/310849821_2031386607070268_5217937948458780696_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=103&ccb=1-7&_nc_sid=1d2534&_nc_ohc=MG0X5nGMOJsQ7kNvwE7wJ_D&_nc_oc=AdnEfmH25qZ3_1ozUXGu5ZzWvK6Pxxs2YE-v1WimB1wnZQrRJ_GbhWXkx5pmTV64OgE&_nc_zt=24&_nc_ht=scontent.fjkr1-1.fna&_nc_gid=dw2A78Sbms8hq6FtSEFXQA&oh=00_AfH0lQGpaaY74NRWVg3tG5RLek8ngrthyRODkCXSoymr9A&oe=681903B5",
-  },
-  {
-    name: "Pra Mesh",
     role: "Operations Manager",
-    img: "https://scontent.fjkr1-1.fna.fbcdn.net/v/t39.30808-1/463900645_1950048432173429_3295198303052127186_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=105&ccb=1-7&_nc_sid=e99d92&_nc_ohc=Nt5xrYMNsF4Q7kNvwEKqnNX&_nc_oc=AdlC9aHydNkQAAkjpp02ISZeB0OUo8QKPWtyHHvlKrX9xKtbr5USV9hsJE55fIsunPM&_nc_zt=24&_nc_ht=scontent.fjkr1-1.fna&_nc_gid=JmISO4qYxh-4YGLZCY_h4Q&oh=00_AfGX2iFwVFW5AOOu6866jYHr7ICInFBBe_shT0OPAdnF6Q&oe=6818F80D",
+    img: "https://static1.dualshockersimages.com/wordpress/wp-content/uploads/2023/11/ikki-niko-from-blue-lock.jpg",
   },
+  {
+    name: "Birag Acharya",
+    role: "Database designer",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxTIzCRFDgAXvFUZlCQe86i4FrjphkFHtuXQ&s",
+  }
 ];
 
 // Testimonials now also include all five, if desired:
@@ -75,7 +75,7 @@ export default function AboutPage() {
       <section
         className="h-80 bg-cover bg-center relative"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1350&q=80')"
+          backgroundImage: "url('https://i.ebayimg.com/images/g/VuUAAOSwKbFiVw8x/s-l1200.jpg')"
         }}
       >
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -88,17 +88,17 @@ export default function AboutPage() {
 
       {/* Mission */}
       <section className="px-6 md:px-24 text-center">
-        <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Mission</h2>
-        <p className="mx-auto max-w-3xl text-gray-600 leading-relaxed text-lg">
+        <h2 className="text-4xl font-bold text-white mb-4">Our Mission</h2>
+        <p className="mx-auto max-w-3xl text-white leading-relaxed text-lg">
           We believe every reader deserves a handpicked journey—modern bestsellers or rare editions—delivered right to their door.
         </p>
       </section>
 
       {/* Timeline */}
-      <section className="py-16 bg-gradient-to-r from-[#F1C40F]/20 to-transparent">
-        <h3 className="text-3xl font-semibold text-center mb-12">Our Journey</h3>
+      <section className="py-16 bg-gradient-to-r from-[#F1C56F]/20 to-transparent">
+        <h3 className="text-3xl font-semibold text-center mb-12 text-white">Our Journey</h3>
         <div className="relative max-w-4xl mx-auto">
-          <div className="absolute inset-y-0 left-1/2 w-1 bg-gray-300 transform -translate-x-1/2"></div>
+          <div className="absolute inset-y-0 left-1/2 w-1 transform -translate-x-1/2"></div>
           <ul className="space-y-12">
             {timeline.map((t, i) => (
               <li key={t.year + t.event} className={`flex items-center gap-6 ${i % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}>
@@ -114,7 +114,7 @@ export default function AboutPage() {
 
       {/* Team */}
       <section className="px-6 md:px-24">
-        <h3 className="text-4xl font-bold text-center mb-12">Meet the Team</h3>
+        <h3 className="text-4xl font-bold text-center mb-12 text-white">Meet the Team</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {team.map((m) => (
             <div key={m.name} className="bg-white p-6 rounded-2xl text-center shadow-lg hover:scale-105 transition-transform">
@@ -146,8 +146,8 @@ export default function AboutPage() {
 
       {/* Testimonials Carousel */}
       <section className="px-6 md:px-24">
-        <h3 className="text-4xl font-bold text-center mb-12">Testimonials</h3>
-        <div className="relative max-w-3xl mx-auto bg-blue-600 rounded-3xl overflow-hidden">
+        <h3 className="text-4xl font-bold text-center mb-12 text-white">Testimonials</h3>
+        <div className="relative max-w-3xl mx-auto bg-blue-900 rounded-3xl overflow-hidden">
           <div className="p-12 flex flex-col md:flex-row items-center text-white">
             <img
               src={testimonials[idx].img}
@@ -168,13 +168,7 @@ export default function AboutPage() {
           </button>
         </div>
       </section>
-
-      {/* CTA */}
-      <section className="py-16 text-center">
-        <Link href="/catalog" className="inline-block bg-[#F1C40F] hover:bg-yellow-500 text-gray-900 font-bold px-10 py-4 rounded-full shadow-lg transition">
-          Browse Our Collection
-        </Link>
-      </section>
+      <div className="bg-black"> <p> hi </p></div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import Link from "next/link";
 import axios from "../../utils/axios";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import {
   UserIcon,
   LogOutIcon,
   BookIcon,
+  BellIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AuthContext } from "../../utils/auth";
@@ -19,12 +20,16 @@ import ProfileOrders from "./ProfileOrders";
 import WishlistPage from "../wishlist/page";
 import Catalog from "../catalog/page";
 import ProfileOrderReviews from "./ProfileOrderReview";
+import { OrderContext } from "../../utils/order";
+import { HubConnectionBuilder, LogLevel, HttpTransportType } from "@microsoft/signalr";
+import { jwtDecode } from "jwt-decode";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { fetchUserData, user, setUser } = useContext(AuthContext);
+  const { fetchUserData, user, logout } = useContext(AuthContext);
+  const { fetchOrders } = useContext(OrderContext);
   const [profileData, setProfileData] = useState({
     userName: "",
     userEmail: "",
@@ -38,22 +43,52 @@ export default function DashboardPage() {
     confirmPassword: "",
   });
   const [previewImage, setPreviewImage] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/login");
         toast.error("Please login first!");
+        router.push("/login");
         return;
       }
 
-      await fetchUserData();
-      setIsLoading(false);
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        if (decoded.exp < currentTime) {
+          localStorage.removeItem("token");
+          toast.error("Session expired, please login again!");
+          router.push("/login");
+          return;
+        }
+
+        await fetchUserData();
+        if (!user) {
+          toast.error("Failed to fetch user data, please login again!");
+          router.push("/login");
+          return;
+        }
+
+        await fetchNotifications();
+      } catch (error) {
+        console.error("Auth check error:", error.response?.data || error.message);
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          toast.error("Session invalid, please login again!");
+          router.push("/login");
+        } else {
+          toast.error("Authentication failed: " + (error.response?.data?.message || "Server error"));
+        }
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     checkAuth();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (user) {
@@ -68,27 +103,116 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  // Redirect if user is not authenticated after loading
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/login");
       toast.error("Please login first!");
+      router.push("/login");
     }
   }, [isLoading, user, router]);
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get("/order/notifications");
+      setNotifications(response.data || []);
+      setUnreadCount(response.data.filter((n) => !n.isRead).length || 0);
+      console.log("Notifications fetched:", response.data);
+    } catch (error) {
+      console.error("Fetch notifications error:", error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        toast.error("Session invalid, please login again!");
+        router.push("/login");
+      } else {
+        toast.error("Failed to fetch notifications: " + (error.response?.data?.message || "Server error"));
+      }
+      throw error;
+    }
+  };
 
-  if (!user) {
-    return null; // Prevent rendering if user is not authenticated
-  }
+  const markNotificationAsRead = async (id) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+          toast.error("No token found, please login again!");
+          router.push("/login");
+          return;
+      }
+      console.log("Sending request with token:", token.substring(0, 20) + "...");
+      try {
+          await axios.put(`/order/notification/${id}/read`);
+          await fetchNotifications();
+      } catch (error) {
+          console.error("Error marking notification as read:", error.response?.data || error.message);
+          if (error.response?.status === 401) {
+              localStorage.removeItem("token");
+              toast.error("Session invalid, please login again!");
+              router.push("/login");
+          } else {
+              toast.error("Failed to mark notification as read: " + (error.response?.data?.message || "Server error"));
+          }
+      }
+  };
+
+  useEffect(() => {
+    if (!user?.userId) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("No token found, please login again!");
+      router.push("/login");
+      return;
+    }
+
+    const connection = new HubConnectionBuilder()
+      .withUrl("http://localhost:5189/notificationhub", {
+        accessTokenFactory: () => token,
+        transport: HttpTransportType.WebSockets,
+        skipNegotiation: true,
+      })
+      .configureLogging(LogLevel.Information)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("OrderFulfilled", (data) => {
+      fetchNotifications();
+      toast.info("New notification received!");
+    });
+
+    connection.on("OrderCancelled", (data) => {
+        fetchNotifications();
+        toast.info("Order cancelled by staff!");
+    });
+
+    const startConnection = async () => {
+      try {
+        if (connection.state === "Disconnected") {
+          await connection.start();
+          const group = `user-${user.userId}`;
+          await connection.invoke("JoinGroup", group);
+          console.log("SignalR connected successfully to group:", group);
+        }
+      } catch (err) {
+        console.error("SignalR connection error:", err);
+        toast.error("Failed to connect to notifications. Please refresh or login again.");
+      }
+    };
+
+    startConnection();
+
+    return () => {
+      if (connection.state === "Connected") {
+        connection.stop().catch((err) => console.error("Error stopping SignalR:", err));
+      }
+    };
+  }, [user?.userId, router]);
 
   const SignOut = async () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    router.push("/");
-    toast.success("Logged out successfully");
+    try {
+      await logout(router);
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout failed: " + (error.message || "Unknown error"));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -102,32 +226,32 @@ export default function DashboardPage() {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(
-        `/user/${user.userId}`,
-        {
-          userName: profileData.userName,
-          userEmail: profileData.userEmail,
-          phoneNumber: profileData.phoneNumber,
-          defaultStore: profileData.defaultStore,
-        },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
+      await axios.put(`/user/${user.userId}`, {
+        userName: profileData.userName,
+        userEmail: profileData.userEmail,
+        phoneNumber: profileData.phoneNumber,
+        defaultStore: profileData.defaultStore,
+      });
 
       if (profileData.profileImage) {
         const formData = new FormData();
         formData.append("file", profileData.profileImage);
         await axios.put(`/user/${user.userId}/upload-image`, formData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
-      fetchUserData();
+      await fetchUserData();
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      console.error("Profile update error:", error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        toast.error("Session invalid, please login again!");
+        router.push("/login");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to update profile");
+      }
     }
   };
 
@@ -137,19 +261,23 @@ export default function DashboardPage() {
       toast.error("New passwords do not match");
       return;
     }
+
     try {
-      await axios.put(
-        `/user/${user.userId}/password`,
-        {
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
+      await axios.put(`/user/${user.userId}/password`, {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       toast.success("Password updated successfully");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update password");
+      console.error("Password update error:", error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        toast.error("Session invalid, please login again!");
+        router.push("/login");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to update password");
+      }
     }
   };
 
@@ -179,7 +307,7 @@ export default function DashboardPage() {
                   <p className="text-gray-600">
                     Member since {new Date(user?.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                   </p>
-                  <p className="text-[#E3B23C] font-bold">{user?.membershipLevel || "Standard Member"}</p>
+                  <p className="text-[#E3B23C] font-bold">{user?.role || "Member"}</p>
                 </div>
               </div>
               <div className="border-t pt-4">
@@ -194,19 +322,24 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Default Store</p>
-                    <p>{user?.defaultStore || "BookLux"}</p>
+                    <p>{profileData.defaultStore || "BookLux"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Membership Level</p>
-                    <p>{user?.membershipLevel || "Standard"} ({user?.discountPercentage || 0}% discount)</p>
+                    <p className="text-sm text-gray-500">Role</p>
+                    <p>{user?.role || "Member"}</p>
                   </div>
                 </div>
                 <div className="border-t pt-2">
-                <Link href="#settings" onClick={() => setActiveTab("settings")} className="text-[#E3B23C] hover:text-[#ff5a5c]">
-                  Edit Profile
-                </Link>
+                  <Link href="#settings" onClick={() => setActiveTab("settings")} className="text-[#E3B23C] hover:text-[#ff5a5c]">
+                    Edit Profile
+                  </Link>
                 </div>
               </div>
+            </div>
+            <div className="relative mb-6">
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
             </div>
           </div>
         );
@@ -215,13 +348,13 @@ export default function DashboardPage() {
         return <ProfileOrders />;
 
       case "wishlist":
-        return <WishlistPage/>;
+        return <WishlistPage />;
 
       case "reviews":
         return <ProfileOrderReviews />;
 
       case "catalog":
-        return <Catalog/>
+        return <Catalog />;
 
       case "settings":
         return (
@@ -324,10 +457,40 @@ export default function DashboardPage() {
             </div>
           </div>
         );
+
+      case "notifications":
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Notifications</h2>
+            <div className="bg-white shadow rounded-lg p-6">
+              {notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="mb-4 p-4 border rounded-lg hover:bg-gray-50"
+                    onClick={() => {
+                      if (!notification.isRead) markNotificationAsRead(notification.id);
+                    }}
+                  >
+                    <p className={notification.isRead ? "text-gray-600" : "font-bold"}>{notification.message}</p>
+                    <p className="text-xs text-gray-500">{new Date(notification.createdAt).toLocaleString()}</p>
+                  </div>
+                ))
+              ) : (
+                <p>No notifications available.</p>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -353,7 +516,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold">{user?.userName}</h3>
-                    <p className="text-sm text-[#E3B23C]">{user?.membershipLevel || "Standard Member"}</p>
+                    <p className="text-sm text-[#E3B23C]">{user?.role || "Member"}</p>
                   </div>
                 </div>
               </div>
@@ -365,6 +528,7 @@ export default function DashboardPage() {
                   { key: "reviews", icon: StarIcon, label: "Reviews" },
                   { key: "catalog", icon: BookIcon, label: "Collections" },
                   { key: "settings", icon: SettingsIcon, label: "Settings" },
+                  { key: "notifications", icon: BellIcon, label: "Notifications" },
                 ].map(({ key, icon: Icon, label }) => (
                   <button
                     key={key}
@@ -375,6 +539,9 @@ export default function DashboardPage() {
                   >
                     <Icon size={18} className="mr-3" />
                     {label}
+                    {key === "notifications" && unreadCount > 0 && (
+                      <span className="ml-2 inline-flex items-center justify-center w-2 h-2 bg-red-500 rounded-full"></span>
+                    )}
                   </button>
                 ))}
                 <button

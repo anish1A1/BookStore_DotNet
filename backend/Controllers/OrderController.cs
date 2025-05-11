@@ -13,7 +13,6 @@ namespace backend.Controllers;
 
 [Route("order")]
 [ApiController]
-[Authorize(Roles = "Member")]
 public class OrderController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -37,6 +36,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Member")]
     public async Task<ActionResult<OrderDTO>> PlaceOrder([FromBody] PlaceOrderRequest request)
     {
         // In this post request cartItems should be provided by the frontend
@@ -156,6 +156,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Member")]
     public async Task<ActionResult<OrderDTO>> GetOrder(Guid id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -210,6 +211,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Member")]
     public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -263,6 +265,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPut("{id}/cancel")]
+    [Authorize(Roles = "Member")]
     public async Task<IActionResult> CancelOrder(Guid id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -301,13 +304,17 @@ public class OrderController : ControllerBase
     }
 
     [HttpPut("{id}/fulfill")]
-    // [Authorize(Roles = "Staff")]
     [AllowAnonymous]
-
     public async Task<IActionResult> FulfillOrder(Guid id)
     {
+        var staffIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(staffIdClaim)) return BadRequest(new { Message = "Staff ID not found in claims" });
+        var staffId = Guid.Parse(staffIdClaim);
+        
         var order = await _context.Orders
             .Include(o => o.User)
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Book)
             .FirstOrDefaultAsync(o => o.OrderId == id);
 
         if (order == null)
@@ -326,6 +333,16 @@ public class OrderController : ControllerBase
             order.User.OrderCount = 1;
         }
 
+        var orderAction = new OrderAction
+            {
+                Id = Guid.NewGuid(),
+                OrderId = order.OrderId,
+                StaffId = staffId,
+                ActionType = "Fulfilled",
+                ActionDate = DateTime.UtcNow
+            };
+            _context.OrderActions.Add(orderAction);
+
 
         // Create and save notification
         var notification = new Notification
@@ -339,45 +356,221 @@ public class OrderController : ControllerBase
 
 
         // Send real-time notification
-    var group = $"user-{order.UserId}";
-    await _hubContext.Clients.Group(group).SendAsync("OrderFulfilled", new
+        var group = $"user-{order.UserId}";
+        await _hubContext.Clients.Group(group).SendAsync("OrderFulfilled", new
+        {
+            OrderId = order.OrderId,
+            Message = notification.Message,
+            FulfilledAt = notification.CreatedAt
+        });
+
+        await _hubContext.Clients.Group("admin").SendAsync("OrderFulfilled", new
+        {
+            OrderId = order.OrderId,
+            Message = notification.Message,
+            FulfilledAt = notification.CreatedAt
+        });
+            return Ok(new { Message = "Order fulfilled successfully" });
+        }
+
+
+    [HttpPut("staff/{id}/cancel")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CancelOrderAsStaff(Guid id)
     {
-        OrderId = order.OrderId,
-        Message = notification.Message,
-        FulfilledAt = notification.CreatedAt
-    });
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return BadRequest(new { Message = "User ID not found in claims" });
+        var staffId = Guid.Parse(userIdClaim);
 
-    await _hubContext.Clients.Group("admin").SendAsync("OrderFulfilled", new
-    {
-        OrderId = order.OrderId,
-        Message = notification.Message,
-        FulfilledAt = notification.CreatedAt
-    });
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Book)
+            .ThenInclude(b => b.Inventory)
+            .FirstOrDefaultAsync(o => o.OrderId == id);
 
+        if (order == null) return NotFound(new { Message = "Order not found" });
+        if (order.Status != "Pending") return BadRequest(new { Message = "Only pending orders can be cancelled" });
 
+        order.Status = "Cancelled";
+        order.UpdatedAt = DateTime.UtcNow;
+        
+        foreach (var item in order.OrderItems)
+        {
+            if (item.Book.Inventory != null)
+            {
+                item.Book.Inventory.StockCount += item.Quantity;
+            }
+            item.Book.TotalSales -= item.Quantity;
+            item.Book.UpdatedAt = DateTime.UtcNow;
+            if (item.Book.Inventory != null)
+            {
+                item.Book.Inventory.LastUpdated = DateTime.UtcNow;
+            }
+        }
 
-        return Ok(new { Message = "Order fulfilled successfully" });
+        var orderAction = new OrderAction
+        {
+            Id = Guid.NewGuid(),
+            OrderId = order.OrderId,
+            StaffId = staffId,
+            ActionType = "Cancelled",
+            ActionDate = DateTime.UtcNow
+        };
+        _context.OrderActions.Add(orderAction); 
+
+        // Create a notification for the user
+        var notification = new Notification
+        {
+            UserId = order.UserId,
+            Message = $"Your order #{order.OrderId} has been cancelled by staff.",
+            CreatedAt = order.UpdatedAt
+        };
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+        // Notify the user via SignalR
+        var group = $"user-{order.UserId}";
+        await _hubContext.Clients.Group(group).SendAsync("OrderCancelled", new
+        {
+            OrderId = order.OrderId,
+            Message = notification.Message,
+            CancelledAt = notification.CreatedAt
+        });
+
+        await _hubContext.Clients.Group("admin").SendAsync("OrderCancelled", new
+        {
+            OrderId = order.OrderId,
+            Message = notification.Message,
+            CancelledAt = notification.CreatedAt
+        });
+
+        return NoContent();
     }
 
+    [HttpGet("staff/history")]
+    [Authorize(Roles = "Staff")]
+    public async Task<ActionResult<List<OrderDTO>>> GetStaffOrderHistory()
+    {
+        var staffIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(staffIdClaim)) return BadRequest(new { Message = "Staff ID not found in claims" });
+        var staffId = Guid.Parse(staffIdClaim);
+
+        var orderActions = await _context.OrderActions
+            .Where(oa => oa.StaffId == staffId)
+            .Include(oa => oa.Order)
+            .ThenInclude(o => o.OrderItems)
+            .ThenInclude(oi => oi.Book)
+            .Include(oa => oa.Order)
+            .ThenInclude(o => o.User)
+            .ToListAsync();
+
+        var orderDTOs = orderActions.Select(oa => new OrderDTO
+        {
+            OrderId = oa.Order.OrderId,
+            UserId = oa.Order.UserId,
+            OrderDate = oa.Order.OrderDate,
+            Status = oa.ActionType, // Use the action type as the status
+            ClaimCode = oa.Order.ClaimCode,
+            DiscountAmount = oa.Order.DiscountAmount,
+            TotalAmount = oa.Order.TotalAmount,
+            User = new UserDTO
+            {
+                UserName = oa.Order.User.UserName,
+                UserEmail = oa.Order.User.UserEmail
+            },
+            OrderItems = oa.Order.OrderItems.Select(oi => new OrderItemDTO
+            {
+                OrderItemId = oi.OrderItemId,
+                BookId = oi.BookId,
+                Book = new BookDTO
+                {
+                    BookId = oi.Book.BookId,
+                    ISBN = oi.Book.ISBN,
+                    BookTitle = oi.Book.BookTitle,
+                    BookDescription = oi.Book.BookDescription,
+                    PublicationDate = oi.Book.PublicationDate,
+                    BookLanguage = oi.Book.BookLanguage,
+                    BookPrice = oi.Book.BookPrice,
+                    StockCount = oi.Book.Inventory != null ? oi.Book.Inventory.StockCount : 0,
+                    LibraryAvailable = oi.Book.LibraryAvailable,
+                    AuthorName = oi.Book.AuthorName,
+                    PublisherName = oi.Book.PublisherName,
+                    GenreName = oi.Book.GenreName,
+                    FormatName = oi.Book.FormatName,
+                    Rating = oi.Book.Rating,
+                    TotalSales = oi.Book.TotalSales
+                },
+                Quantity = oi.Quantity,
+                UnitPrice = oi.UnitPrice
+            }).ToList()
+        }).ToList();
+
+        return Ok(orderDTOs);
+    }
+
+
     [HttpGet("notifications")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserNotifications()
     {
-        var userId = User.FindFirst("id")?.Value;
-        if (userId == null) return Unauthorized();
+        var userIdClaim = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value
+                        ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            Console.WriteLine("User ID claim not found in token");
+            return Unauthorized(new { Message = "User ID claim not found in token" });
+        }
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            Console.WriteLine($"Invalid user ID in token: {userIdClaim}");
+            return Unauthorized(new { Message = "Invalid user ID in token" });
+        }
 
         var notifications = await _context.Notifications
-            .Where(n => n.UserId.ToString() == userId)
+            .Where(n => n.UserId == userId)
             .OrderByDescending(n => n.CreatedAt)
             .Select(n => new
             {
                 n.Id,
                 n.Message,
+                n.IsRead,
                 n.CreatedAt
             })
             .ToListAsync();
 
         return Ok(notifications);
+    }
+
+
+    [HttpPut("notification/{id}/read")]
+    [AllowAnonymous]
+    public async Task<IActionResult> MarkNotificationAsRead(int id)
+    {
+        Console.WriteLine($"Processing request for notification ID: {id}");
+        var userIdClaim = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value
+                        ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        Console.WriteLine($"User claims: {string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}"))}");
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            Console.WriteLine("User ID claim not found in token");
+            return Unauthorized(new { Message = "User ID claim not found in token" });
+        }
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            Console.WriteLine($"Invalid user ID in token: {userIdClaim}");
+            return Unauthorized(new { Message = "Invalid user ID in token" });
+        }
+
+        var notification = await _context.Notifications
+            .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+        if (notification == null) return NotFound(new { Message = "Notification not found" });
+
+        notification.IsRead = true;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Notification marked as read" });
     }
 
 
@@ -445,8 +638,4 @@ public class OrderController : ControllerBase
 
         return Ok(orderDTO);
     }
-
-
-
-    
 }
