@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext } from "react";
 import { PlusIcon, CalendarIcon, PercentIcon, EditIcon, TrashIcon } from "lucide-react";
 import { BookContext } from "../../../utils/book";
-import axios from "../../../utils/axios"; // ✅ Ensure API calls work
+import axios from "../../../utils/axios"; // Ensure API calls work
 
 export default function DiscountsManagementPage() {
   // const { fetchallDiscount, discount, fetchBookToAddForDisc, bookForDis } = useContext(BookContext);
@@ -27,7 +27,7 @@ export default function DiscountsManagementPage() {
         },
       }); 
 
-      if (response.status !== 200) { // ✅ This could be unnecessary, since 200 means success
+      if (response.status !== 200) {
         throw new Error("Error fetching discounts");
       }
   
@@ -68,7 +68,7 @@ export default function DiscountsManagementPage() {
   const handleDelete = async () => {
     try {
       await axios.delete(`/discount/${showDeleteId}`);
-      setDiscounts(discounts.filter(d => d.discountId !== showDeleteId)); // ✅ Removes deleted discount from UI
+      setDiscounts(discounts.filter(d => d.discountId !== showDeleteId));
       setShowDeleteId(null);
     } catch (error) {
       console.error("Error deleting discount:", error);

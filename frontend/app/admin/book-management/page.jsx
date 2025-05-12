@@ -221,7 +221,7 @@ export default function BookManagementPage() {
                     <td className="p-3 border border-gray-300">{b?.authorName}</td>
                     <td className="p-3 border border-gray-300">{b?.isbn}</td>
                     <td className="p-3 border border-gray-300">{b?.genreName}</td>
-                    <td className="p-3 border border-gray-300">${b?.bookPrice}</td>
+                    <td className="p-3 border border-gray-300">Rs.{b?.bookPrice}</td>
                     <td className="p-3 border border-gray-300">
                       <div className="flex items-center gap-2">
                         <div

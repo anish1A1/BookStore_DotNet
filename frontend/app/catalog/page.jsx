@@ -383,11 +383,11 @@ export default function CataloguePage() {
                     <p className="text-sm text-gray-500">{book.authorName}</p>
                     {book.isOnSale ? (
                       <p className="mt-1 text-lg font-bold text-red-600">
-                        <span className="text-gray-500 line-through">${book.bookPrice?.toFixed(2)}</span>
-                        ${book.discountedPrice?.toFixed(2)}
+                        <span className="text-gray-500 line-through">Rs.{book.bookPrice?.toFixed(2)}</span>
+                        Rs.{book.discountedPrice?.toFixed(2)}
                       </p>
                     ) : (
-                      <p className="mt-1 text-lg font-bold">${book.bookPrice?.toFixed(2)}</p>
+                      <p className="mt-1 text-lg font-bold">Rs.{book.bookPrice?.toFixed(2)}</p>
                     )}
                   </button>
                 ))

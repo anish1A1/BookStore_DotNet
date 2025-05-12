@@ -215,19 +215,19 @@ export default function BookDetailPage() {
                 {bookById.isOnSale ? (
                   <>
                     <span className="text-xl font-bold text-red-600">
-                      <span className="text-gray-500 line-through">${bookById.bookPrice?.toFixed(2)}</span>
-                        ${bookById.discountedPrice?.toFixed(2)}
+                      <span className="text-gray-500 line-through">Rs.{bookById.bookPrice?.toFixed(2)}</span>
+                        Rs.{bookById.discountedPrice?.toFixed(2)}
                     </span>
                     <span className="text-green-600 text-sm font-medium">
                       ({bookById.discountPercentage}% Off)
                     </span>
                   </>
                 ) : (
-                  <span className="text-2xl font-bold">${bookById.bookPrice?.toFixed(2)}</span>
+                  <span className="text-2xl font-bold">Rs.{bookById.bookPrice?.toFixed(2)}</span>
                 )}
               </div>
               <p className="text-green-600">
-                {bookById?.stockCount > 0 ? "In Stock — Ships within 24 hours" : "Out of Stock"}
+                {bookById?.stockCount > 0 ? "In Stock" : "Out of Stock"}
               </p>
 
               {bookById.isOnSale && (
@@ -390,7 +390,7 @@ export default function BookDetailPage() {
                       <div className="p-4">
                         <h4 className="font-semibold">{similarBook.title}</h4>
                         <p className="text-sm text-gray-600">{similarBook.author}</p>
-                        <p className="font-bold mt-2">${similarBook.price.toFixed(2)}</p>
+                        <p className="font-bold mt-2">Rs.{similarBook.price.toFixed(2)}</p>
                       </div>
                     </Link>
                   ))

@@ -149,12 +149,12 @@ export default function CheckoutPage() {
               <div className="mb-6 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>Rs.{subtotal.toFixed(2)}</span>
                 </div>
                 {totalBooks >= 5 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount (5%)</span>
-                    <span>-${(subtotal * 0.05).toFixed(2)}</span>
+                    <span>-Rs.{(subtotal * 0.05).toFixed(2)}</span>
                   </div>
                 )}
                 {orderCount >= 10 && (
@@ -165,7 +165,7 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>Rs.{total.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between">
