@@ -168,25 +168,15 @@ const MainHomePage = () => {
         <div className="p-4 space-y-2">
           <h4 className="font-semibold text-lg truncate">{book.title}</h4>
           <p className="text-sm text-gray-500 truncate">{book.author}</p>
-          <div className="flex items-center">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <StarIcon
-                key={i}
-                size={14}
-                className={i < Math.round(book.rating) ? "text-yellow-400" : "text-gray-300"}
-              />
-            ))}
-            <span className="ml-2 text-sm text-gray-600">{book.rating.toFixed(1)}</span>
-          </div>
           <div className="flex justify-between items-center">
             <div className="text-lg font-bold text-gray-800">
               {book.onSale ? (
                 <>
-                  <span className="text-red-500">${book.salePrice.toFixed(2)}</span>{" "}
-                  <span className="line-through text-gray-400 text-sm">${book.price.toFixed(2)}</span>
+                  <span className="text-red-500">Rs.{book.salePrice.toFixed(2)}</span>{" "}
+                  <span className="line-through text-gray-400 text-sm">Rs.{book.price.toFixed(2)}</span>
                 </>
               ) : (
-                `$${book.price.toFixed(2)}`
+                `Rs.${book.price.toFixed(2)}`
               )}
             </div>
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">

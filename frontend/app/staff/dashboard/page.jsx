@@ -122,7 +122,7 @@ export default function StaffDashboardPage() {
           title: item.book?.bookTitle || "Unknown",
           quantity: item.quantity,
         })) || [],
-        total: `$${order.totalAmount?.toFixed(2) || "0.00"}`,
+        total: `Rs.${order.totalAmount?.toFixed(2) || "0.00"}`,
         status: order.status || "Unknown",
       });
       

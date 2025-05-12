@@ -23,7 +23,7 @@ namespace backend.Controllers
     [HttpGet]
     public async Task<ActionResult> GetBooks(
         int page = 1,
-        int pageSize = 10,
+        int pageSize = 100,
         string? search = null,
         string? sort = null,
         string? genreName = null,
