@@ -21,7 +21,7 @@ namespace backend.Service
             string user = smtp["Username"] ?? throw new InvalidOperationException("SMTP Username is not configured.");
             string password = smtp["Password"] ?? throw new InvalidOperationException("SMTP Password is not configured.");
 
-            string body = $"Thank you for your order!\n\nClaim Code: {claimCode}\n\nTotal: ${total}\nItems: {itemCount} books\n\n" +
+            string body = $"Thank you for your order!\n\nClaim Code: {claimCode}\n\nTotal: Rs.{total}\nItems: {itemCount} books\n\n" +
                           $"Please provide this code to staff at the BookLux Store, Putalisadak, Kathmandu to collect your books.\n\n" +
                           $"Pickup Date: Tomorrow, 10:00 AM - 05:00 PM\nHeld for 3 days from pickup.";
 

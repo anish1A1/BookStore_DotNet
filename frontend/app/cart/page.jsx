@@ -191,7 +191,7 @@ export default function CartPage() {
                   {/* Price */}
                   <div className="w-full md:w-1/6 text-center mb-4 md:mb-0">
                     <div className="md:hidden text-sm text-gray-500 mb-1">Price:</div>
-                    ${item?.book?.isOnSale ? item?.book?.discountedPrice : item?.book?.bookPrice}
+                    Rs.{item?.book?.isOnSale ? item?.book?.discountedPrice : item?.book?.bookPrice}
                   </div>
 
                   <div className="w-full md:w-1/6 flex justify-center mb-4 md:mb-0">
@@ -220,7 +220,7 @@ export default function CartPage() {
                     <div className="md:hidden text-sm text-gray-500 mb-1">Total:</div>
                     <span className="font-bold">
                       {/* $ {((item.onSale ? item.salePrice : item.price) * item.quantity).toFixed(2)} */}
-                      ${item?.book?.discountedPrice > 0 ? item?.book?.discountedPrice * item.quantity : item?.book?.bookPrice * item.quantity}
+                      Rs.{item?.book?.discountedPrice > 0 ? item?.book?.discountedPrice * item.quantity : item?.book?.bookPrice * item.quantity}
                     </span>
                     <button
                       onClick={() => removeItem(item?.book?.bookId)}
@@ -248,14 +248,14 @@ export default function CartPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span>${!isNaN(totalPrice) ? totalPrice.toFixed(2) : '0.00'}</span>
+                    <span>Rs.{!isNaN(totalPrice) ? totalPrice.toFixed(2) : '0.00'}</span>
 
                   </div>
                   {totalQuantity && totalQuantity >= 5 && (
                     
                     <div className="flex justify-between text-green-600">
                     <span>Discount (5%)</span>
-                    <span>-${discountBy5Percent.toFixed(2)}</span>
+                    <span>-Rs.{discountBy5Percent.toFixed(2)}</span>
                   </div>
                   )}
                 </div>
@@ -263,7 +263,7 @@ export default function CartPage() {
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>
-                    ${!isNaN(totalPrice - discountBy5Percent) ? (totalPrice - discountBy5Percent).toFixed(2) : '0.00'}
+                    Rs.{!isNaN(totalPrice - discountBy5Percent) ? (totalPrice - discountBy5Percent).toFixed(2) : '0.00'}
                   </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
