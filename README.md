@@ -156,7 +156,7 @@ This project is for educational use only.
 
 ##  Acknowledgements
 
-Thanks to **Islington College**, **London Metropolitan University**, and our module leader **Mr. Kushal Tamang / Mr. Bikram Poudel** for guidance and support.
+Thanks to **Itahari International College**, **London Metropolitan University**, and our module leader **Mr. Kushal Tamang / Mr. Bikram Poudel** for guidance and support.
 
 ---
 
